@@ -119,7 +119,7 @@ export function PatientDashboard() {
                           time="02:30 PM"
                           doctorName="Dr. Johnson"
                           specialty="Cardiologist"
-                          status="Past"
+                          status="Upcoming"
                         />
                       </div>
                     </ScrollArea>
@@ -193,7 +193,6 @@ export function PatientDashboard() {
                       <TableHead>Date</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Doctor</TableHead>
-                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -201,25 +200,16 @@ export function PatientDashboard() {
                       <TableCell>2023-06-15</TableCell>
                       <TableCell>Annual Checkup</TableCell>
                       <TableCell>Dr. Smith</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">View Details</Button>
-                      </TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>2023-05-02</TableCell>
                       <TableCell>Blood Test Results</TableCell>
                       <TableCell>Dr. Johnson</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">View Details</Button>
-                      </TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>2023-03-10</TableCell>
                       <TableCell>X-Ray Report</TableCell>
                       <TableCell>Dr. Lee</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">View Details</Button>
-                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>

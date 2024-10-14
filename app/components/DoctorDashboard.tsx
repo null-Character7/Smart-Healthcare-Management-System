@@ -20,21 +20,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
-import { CalendarDays, ClipboardList, FileText, Activity, Search, Plus } from 'lucide-react'
+import { CalendarDays, ClipboardList, FileText, Activity, Search } from 'lucide-react'
 
 export function DoctorDashboard() {
   const [date, setDate] = useState<Date | undefined>(new Date())
@@ -130,10 +122,6 @@ export function DoctorDashboard() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Appointment
-                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -162,7 +150,7 @@ export function DoctorDashboard() {
                       <TableHead>Name</TableHead>
                       <TableHead>Age</TableHead>
                       <TableHead>Last Visit</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>Reason</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -170,25 +158,19 @@ export function DoctorDashboard() {
                       <TableCell>John Doe</TableCell>
                       <TableCell>45</TableCell>
                       <TableCell>2023-05-15</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">View Record</Button>
-                      </TableCell>
+                      <TableCell>Erectile disfunction</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>Jane Smith</TableCell>
                       <TableCell>32</TableCell>
                       <TableCell>2023-06-02</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">View Record</Button>
-                      </TableCell>
+                      <TableCell>Regular check-up</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>Bob Johnson</TableCell>
                       <TableCell>58</TableCell>
                       <TableCell>2023-06-10</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">View Record</Button>
-                      </TableCell>
+                      <TableCell>Dengue</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -221,7 +203,7 @@ export function DoctorDashboard() {
                       <TableHead>Medication</TableHead>
                       <TableHead>Dosage</TableHead>
                       <TableHead>Date Prescribed</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>Next Visit</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -230,68 +212,20 @@ export function DoctorDashboard() {
                       <TableCell>Amoxicillin</TableCell>
                       <TableCell>500mg, 3x daily</TableCell>
                       <TableCell>2023-06-10</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">Edit</Button>
-                      </TableCell>
+                      <TableCell>2023-06-10</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>Jane Smith</TableCell>
                       <TableCell>Lisinopril</TableCell>
                       <TableCell>10mg, 1x daily</TableCell>
                       <TableCell>2023-06-02</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">Edit</Button>
-                      </TableCell>
+                      <TableCell>2023-06-10</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </CardContent>
               <CardFooter>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" />
-                      New Prescription
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Write New Prescription</DialogTitle>
-                      <DialogDescription>
-                        Fill in the details for the new prescription.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="patient" className="text-right">
-                          Patient
-                        </Label>
-                        <Input id="patient" className="col-span-3" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="medication" className="text-right">
-                          Medication
-                        </Label>
-                        <Input id="medication" className="col-span-3" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="dosage" className="text-right">
-                          Dosage
-                        </Label>
-                        <Input id="dosage" className="col-span-3" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="instructions" className="text-right">
-                          Instructions
-                        </Label>
-                        <Textarea id="instructions" className="col-span-3" />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit">Save Prescription</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                
               </CardFooter>
             </Card>
           </TabsContent>
