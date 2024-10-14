@@ -10,55 +10,59 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id                   Int                   @id @default(autoincrement())
-  name                 String
-  email                String                @unique
-  password             String
-  userType             UserType
-  appointments         Appointment[]
-  appointmentRequests  AppointmentRequest[]  // Added relation to AppointmentRequest
+model Doctor {
+  id                Int                @id @default(autoincrement())
+  name              String
+  email             String              @unique
+  password          String
+  specialty         String
+  appointments      Appointment[]       @relation("DoctorAppointments")
+  medicalRecords    MedicalRecord[]     @relation("DoctorRecords")
+  prescriptions     Prescription[]      @relation("DoctorPrescriptions")
 }
 
-model Doctor {
-  id                    Int                   @id @default(autoincrement())
-  name                  String
-  specialty             String
-  avatar                String?
-  appointments          Appointment[]
-  appointmentRequests    AppointmentRequest[] // Added relation to AppointmentRequest
+model Patient {
+  id                Int                @id @default(autoincrement())
+  name              String
+  email             String              @unique
+  password          String
+  age               Int
+  appointments      Appointment[]       @relation("PatientAppointments")
+  medicalRecords    MedicalRecord[]     @relation("PatientRecords")
+  prescriptions     Prescription[]      @relation("PatientPrescriptions")
 }
 
 model Appointment {
-  id        Int      @id @default(autoincrement())
-  date      DateTime
-  time      String
-  doctorId  Int
-  patientId Int
-  status    AppointmentStatus
-
-  doctor    Doctor   @relation(fields: [doctorId], references: [id])
-  patient   User     @relation(fields: [patientId], references: [id])
+  id                Int                @id @default(autoincrement())
+  doctorId          Int
+  patientId         Int
+  date              DateTime
+  timeSlot          String              // e.g. "09:00 AM", "10:00 AM"
+  reason            String
+  doctor            Doctor              @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  patient           Patient             @relation("PatientAppointments", fields: [patientId], references: [id])
 }
 
-model AppointmentRequest {
-  id        Int      @id @default(autoincrement())
-  date      DateTime
-  time      String
-  patientId Int
-  doctorId  Int
 
-  patient   User     @relation(fields: [patientId], references: [id])
-  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+model MedicalRecord {
+  id                Int                @id @default(autoincrement())
+  patientId         Int
+  doctorId          Int
+  date              DateTime
+  reason            String
+  doctor            Doctor              @relation("DoctorRecords", fields: [doctorId], references: [id])
+  patient           Patient             @relation("PatientRecords", fields: [patientId], references: [id])
 }
 
-enum UserType {
-  PATIENT
-  DOCTOR
-}
-
-enum AppointmentStatus {
-  CONFIRMED
-  PENDING
-  CANCELED
+model Prescription {
+  id                Int                @id @default(autoincrement())
+  patientId         Int
+  doctorId          Int
+  medication        String
+  dosage            String
+  startDate         DateTime
+  endDate           DateTime
+  prescribedBy      String              // Name of the doctor
+  patient           Patient             @relation("PatientPrescriptions", fields: [patientId], references: [id])
+  doctor            Doctor              @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
 }
