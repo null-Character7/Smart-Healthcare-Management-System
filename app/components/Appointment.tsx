@@ -53,7 +53,7 @@ const specialties = [
 ];
 
 // Main Appointment component
-export function Appointment({ userType = "doctor" }) {
+export function Appointment({ userType = "patient" }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
 

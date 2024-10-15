@@ -17,7 +17,6 @@ model Doctor {
   password          String
   specialty         String
   appointments      Appointment[]       @relation("DoctorAppointments")
-  medicalRecords    MedicalRecord[]     @relation("DoctorRecords")
   prescriptions     Prescription[]      @relation("DoctorPrescriptions")
 }
 
@@ -28,7 +27,6 @@ model Patient {
   password          String
   age               Int
   appointments      Appointment[]       @relation("PatientAppointments")
-  medicalRecords    MedicalRecord[]     @relation("PatientRecords")
   prescriptions     Prescription[]      @relation("PatientPrescriptions")
 }
 
@@ -44,16 +42,6 @@ model Appointment {
 }
 
 
-model MedicalRecord {
-  id                Int                @id @default(autoincrement())
-  patientId         Int
-  doctorId          Int
-  date              DateTime
-  reason            String
-  doctor            Doctor              @relation("DoctorRecords", fields: [doctorId], references: [id])
-  patient           Patient             @relation("PatientRecords", fields: [patientId], references: [id])
-}
-
 model Prescription {
   id                Int                @id @default(autoincrement())
   patientId         Int
@@ -62,7 +50,6 @@ model Prescription {
   dosage            String
   startDate         DateTime
   endDate           DateTime
-  prescribedBy      String              // Name of the doctor
   patient           Patient             @relation("PatientPrescriptions", fields: [patientId], references: [id])
   doctor            Doctor              @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
 }

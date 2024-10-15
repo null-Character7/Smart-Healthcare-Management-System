@@ -33,7 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { CalendarDays, ClipboardList, FileText, Activity, Plus, AlertTriangle } from 'lucide-react'
+import { CalendarDays, FileText, Activity, Plus, AlertTriangle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function PatientDashboard() {
@@ -53,13 +53,6 @@ export function PatientDashboard() {
           >
             <CalendarDays className="w-5 h-5 mr-2" />
             Appointments
-          </a>
-          <a
-            href="#records"
-            className="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-100"
-          >
-            <ClipboardList className="w-5 h-5 mr-2" />
-            Medical Records
           </a>
           <a
             href="#prescriptions"
@@ -83,7 +76,6 @@ export function PatientDashboard() {
         <Tabs defaultValue="appointments">
           <TabsList className="mb-4">
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
-            <TabsTrigger value="records">Medical Records</TabsTrigger>
             <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
             <TabsTrigger value="ai-recommendations">Health Insights</TabsTrigger>
           </TabsList>
@@ -179,43 +171,6 @@ export function PatientDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Medical Records Tab */}
-          <TabsContent value="records">
-            <Card>
-              <CardHeader>
-                <CardTitle>Medical Records</CardTitle>
-                <CardDescription>Access your medical history and test results</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Doctor</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>2023-06-15</TableCell>
-                      <TableCell>Annual Checkup</TableCell>
-                      <TableCell>Dr. Smith</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>2023-05-02</TableCell>
-                      <TableCell>Blood Test Results</TableCell>
-                      <TableCell>Dr. Johnson</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>2023-03-10</TableCell>
-                      <TableCell>X-Ray Report</TableCell>
-                      <TableCell>Dr. Lee</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Prescriptions Tab */}
           <TabsContent value="prescriptions">
@@ -233,7 +188,6 @@ export function PatientDashboard() {
                       <TableHead>Prescribed By</TableHead>
                       <TableHead>Start Date</TableHead>
                       <TableHead>End Date</TableHead>
-                      <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -243,7 +197,6 @@ export function PatientDashboard() {
                       <TableCell>Dr. Smith</TableCell>
                       <TableCell>2023-06-10</TableCell>
                       <TableCell>2023-06-20</TableCell>
-                      <TableCell>Active</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>Lisinopril</TableCell>
@@ -251,7 +204,6 @@ export function PatientDashboard() {
                       <TableCell>Dr. Johnson</TableCell>
                       <TableCell>2023-05-15</TableCell>
                       <TableCell>Ongoing</TableCell>
-                      <TableCell>Active</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>Ibuprofen</TableCell>
@@ -259,11 +211,59 @@ export function PatientDashboard() {
                       <TableCell>Dr. Lee</TableCell>
                       <TableCell>2023-04-01</TableCell>
                       <TableCell>2023-04-14</TableCell>
-                      <TableCell>Completed</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
               </CardContent>
+              <CardFooter>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add New Prescription
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Prescription</DialogTitle>
+                      <DialogDescription>
+                        Add prescription details
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="doctor" className="text-right">
+                          Prescribed by
+                        </Label>
+                        <Input id="doctor" className="col-span-3" />
+                        <Label htmlFor="medication" className="text-right">
+                          Medication
+                        </Label>
+                        <Input id="medication" className="col-span-3" />
+                        <Label htmlFor="dosage" className="text-right">
+                          Dosage
+                        </Label>
+                        <Input id="dosage" className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="date" className="text-right">
+                          Start Date
+                        </Label>
+                        <Input id="date" type="date" className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="date" className="text-right">
+                          End Date
+                        </Label>
+                        <Input id="date" type="date" className="col-span-3" />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Add Prescription</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardFooter>
             </Card>
           </TabsContent>
 

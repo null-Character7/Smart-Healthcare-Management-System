@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Card,
   CardContent,
@@ -19,17 +19,34 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar } from "@/components/ui/calendar"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Textarea } from "@/components/ui/textarea"
-import { CalendarDays, ClipboardList, FileText, Activity, Search } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  CalendarDays,
+  ClipboardList,
+  FileText,
+  Activity,
+  Search,
+  Plus,
+  Check,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export function DoctorDashboard() {
-  const [date, setDate] = useState<Date | undefined>(new Date())
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -85,7 +102,9 @@ export function DoctorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Appointments</CardTitle>
-                <CardDescription>View and manage your appointments</CardDescription>
+                <CardDescription>
+                  View and manage your appointments
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex space-x-4">
@@ -98,7 +117,9 @@ export function DoctorDashboard() {
                     />
                   </div>
                   <div className="w-1/2">
-                    <h3 className="text-lg font-semibold mb-2">Appointments for {date?.toDateString()}</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Appointments for {date?.toDateString()}
+                    </h3>
                     <ScrollArea className="h-[300px]">
                       <div className="space-y-4">
                         <AppointmentCard
@@ -121,8 +142,7 @@ export function DoctorDashboard() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
-              </CardFooter>
+              <CardFooter></CardFooter>
             </Card>
           </TabsContent>
 
@@ -131,13 +151,19 @@ export function DoctorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Patient Records</CardTitle>
-                <CardDescription>View and manage patient medical records</CardDescription>
+                <CardDescription>
+                  View and manage patient medical records
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="mb-4">
                   <Label htmlFor="search-patients">Search Patients</Label>
                   <div className="flex w-full max-w-sm items-center space-x-2">
-                    <Input type="text" id="search-patients" placeholder="Enter patient name" />
+                    <Input
+                      type="text"
+                      id="search-patients"
+                      placeholder="Enter patient name"
+                    />
                     <Button type="submit">
                       <Search className="w-4 h-4 mr-2" />
                       Search
@@ -183,13 +209,21 @@ export function DoctorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Prescriptions</CardTitle>
-                <CardDescription>Write and manage prescriptions</CardDescription>
+                <CardDescription>
+                  Write and manage prescriptions
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="mb-4">
-                  <Label htmlFor="search-prescriptions">Search Prescriptions</Label>
+                  <Label htmlFor="search-prescriptions">
+                    Search Prescriptions
+                  </Label>
                   <div className="flex w-full max-w-sm items-center space-x-2">
-                    <Input type="text" id="search-prescriptions" placeholder="Enter patient name or medication" />
+                    <Input
+                      type="text"
+                      id="search-prescriptions"
+                      placeholder="Enter patient name or medication"
+                    />
                     <Button type="submit">
                       <Search className="w-4 h-4 mr-2" />
                       Search
@@ -225,7 +259,53 @@ export function DoctorDashboard() {
                 </Table>
               </CardContent>
               <CardFooter>
-                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add New Prescription
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Prescription</DialogTitle>
+                      <DialogDescription>
+                        Add prescription details
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="patient" className="text-right">
+                          Prescribed to
+                        </Label>
+                        <Input id="patient" className="col-span-3" />
+                        <Label htmlFor="medication" className="text-right">
+                          Medication
+                        </Label>
+                        <Input id="medication" className="col-span-3" />
+                        <Label htmlFor="dosage" className="text-right">
+                          Dosage
+                        </Label>
+                        <Input id="dosage" className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="date" className="text-right">
+                          Start Date
+                        </Label>
+                        <Input id="date" type="date" className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="date" className="text-right">
+                          End Date
+                        </Label>
+                        <Input id="date" type="date" className="col-span-3" />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Add Prescription</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -235,7 +315,9 @@ export function DoctorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>AI-Powered Disease Prediction Tool</CardTitle>
-                <CardDescription>Use AI to predict potential diseases based on symptoms</CardDescription>
+                <CardDescription>
+                  Use AI to predict potential diseases based on symptoms
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -245,18 +327,28 @@ export function DoctorDashboard() {
                   </div>
                   <div>
                     <Label htmlFor="symptoms">Symptoms</Label>
-                    <Textarea id="symptoms" placeholder="Enter patient symptoms (comma-separated)" />
+                    <Textarea
+                      id="symptoms"
+                      placeholder="Enter patient symptoms (comma-separated)"
+                    />
                   </div>
                   <div>
                     <Label>Additional Factors</Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="age">Age</Label>
-                        <Input id="age" type="number" placeholder="Enter patient age" />
+                        <Input
+                          id="age"
+                          type="number"
+                          placeholder="Enter patient age"
+                        />
                       </div>
                       <div>
                         <Label htmlFor="gender">Gender</Label>
-                        <select id="gender" className="w-full p-2 border rounded">
+                        <select
+                          id="gender"
+                          className="w-full p-2 border rounded"
+                        >
                           <option value="">Select gender</option>
                           <option value="male">Male</option>
                           <option value="female">Female</option>
@@ -275,10 +367,18 @@ export function DoctorDashboard() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }
 
-function AppointmentCard({ time, patientName, reason }: { time: string; patientName: string; reason: string }) {
+function AppointmentCard({
+  time,
+  patientName,
+  reason,
+}: {
+  time: string;
+  patientName: string;
+  reason: string;
+}) {
   return (
     <Card>
       <CardContent className="p-4 flex items-center space-x-4">
@@ -286,12 +386,15 @@ function AppointmentCard({ time, patientName, reason }: { time: string; patientN
           <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${patientName}`} alt={patientName} />
           <AvatarFallback>{patientName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
         </Avatar>
-        <div>
+        <div className="flex-1">
           <p className="font-semibold">{time}</p>
           <p>{patientName}</p>
           <p className="text-sm text-gray-500">{reason}</p>
         </div>
+        <Button variant="outline" size="icon" title="Mark as done">
+          <Check className="h-4 w-4" />
+        </Button>
       </CardContent>
     </Card>
-  )
+  );
 }
