@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
         dosage,
         startDate: new Date(startDate), // ensure startDate is a valid Date object
         endDate: new Date(endDate), // ensure endDate is a valid Date object
-        prescribedBy,
       },
     });
 

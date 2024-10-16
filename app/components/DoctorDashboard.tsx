@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 import {
   Table,
   TableBody,
@@ -44,9 +45,59 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import axios from "axios";
+import { useRecoilValue } from "recoil";
+import { userId } from "../recoil/atoms";
+interface Prescription {
+  patient: {
+    name: string;
+  };
+  medication: string;
+  dosage: string;
+  startDate: string;
+  nextVisit: string; // Assuming you have next visit data
+}
+
+interface Appointment {
+  patient: {
+    name: string;
+    age: number;
+  };
+  date: string;
+  reason: string;
+}
 
 export function DoctorDashboard() {
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const doctorId = useRecoilValue(userId);
+  useEffect(() => {
+    const fetchPrescriptions = async () => {
+      try {
+        const response = await axios.get(`/api/doctors/prescriptions`, {
+          params: { doctorId },
+        });
+
+        setPrescriptions(response.data);
+      } catch (error) {
+        console.error("Error fetching prescriptions:", error);
+      }
+    };
+    const fetchAppointments = async () => {
+      try {
+        const response = await axios.get(`/api/doctors/appointments/all`, {
+          params: { doctorId },
+        });
+
+        setAppointments(response.data);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      }
+    };
+    fetchAppointments();
+    fetchPrescriptions();
+  }, [doctorId]);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -180,24 +231,16 @@ export function DoctorDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell>John Doe</TableCell>
-                      <TableCell>45</TableCell>
-                      <TableCell>2023-05-15</TableCell>
-                      <TableCell>Erectile disfunction</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Jane Smith</TableCell>
-                      <TableCell>32</TableCell>
-                      <TableCell>2023-06-02</TableCell>
-                      <TableCell>Regular check-up</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Bob Johnson</TableCell>
-                      <TableCell>58</TableCell>
-                      <TableCell>2023-06-10</TableCell>
-                      <TableCell>Dengue</TableCell>
-                    </TableRow>
+                    {appointments.map((appointment, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{appointment.patient.name}</TableCell>
+                        <TableCell>{appointment.patient.age}</TableCell>
+                        <TableCell>
+                          {new Date(appointment.date).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>{appointment.reason}</TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -241,20 +284,23 @@ export function DoctorDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell>John Doe</TableCell>
-                      <TableCell>Amoxicillin</TableCell>
-                      <TableCell>500mg, 3x daily</TableCell>
-                      <TableCell>2023-06-10</TableCell>
-                      <TableCell>2023-06-10</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Jane Smith</TableCell>
-                      <TableCell>Lisinopril</TableCell>
-                      <TableCell>10mg, 1x daily</TableCell>
-                      <TableCell>2023-06-02</TableCell>
-                      <TableCell>2023-06-10</TableCell>
-                    </TableRow>
+                    {prescriptions.map((prescription, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{prescription.patient.name}</TableCell>
+                        <TableCell>{prescription.medication}</TableCell>
+                        <TableCell>{prescription.dosage}</TableCell>
+                        <TableCell>
+                          {new Date(
+                            prescription.startDate
+                          ).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(
+                            prescription.nextVisit
+                          ).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -383,8 +429,16 @@ function AppointmentCard({
     <Card>
       <CardContent className="p-4 flex items-center space-x-4">
         <Avatar>
-          <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${patientName}`} alt={patientName} />
-          <AvatarFallback>{patientName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+          <AvatarImage
+            src={`https://api.dicebear.com/6.x/initials/svg?seed=${patientName}`}
+            alt={patientName}
+          />
+          <AvatarFallback>
+            {patientName
+              .split(" ")
+              .map((n) => n[0])
+              .join("")}
+          </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <p className="font-semibold">{time}</p>

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,9 +35,39 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { CalendarDays, FileText, Activity, Plus, AlertTriangle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import axios from 'axios';
+import { useRecoilValue } from 'recoil'
+import { userId } from '../recoil/atoms'
+
+interface Prescription {
+  medication: string;
+  dosage: string;
+  doctor: { name: string };
+  startDate: string;
+  endDate: string;
+}
 
 export function PatientDashboard() {
+  const patientId = useRecoilValue(userId)
   const [date, setDate] = useState<Date | undefined>(new Date())
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+
+  useEffect(() => {
+    const fetchPrescriptions = async () => {
+      console.log("patient id is ",patientId)
+      try {
+        const response = await axios.get(`/api/patients/prescriptions`, {
+          params: { patientId },
+        });
+        setPrescriptions(response.data); // Axios automatically parses JSON
+      } catch (error: any) {
+        console.error('Error fetching prescriptions:', error);
+      } finally {
+      }
+    };
+
+    fetchPrescriptions();
+  }, [patientId]);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -191,79 +221,18 @@ export function PatientDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell>Amoxicillin</TableCell>
-                      <TableCell>500mg, 3x daily</TableCell>
-                      <TableCell>Dr. Smith</TableCell>
-                      <TableCell>2023-06-10</TableCell>
-                      <TableCell>2023-06-20</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Lisinopril</TableCell>
-                      <TableCell>10mg, 1x daily</TableCell>
-                      <TableCell>Dr. Johnson</TableCell>
-                      <TableCell>2023-05-15</TableCell>
-                      <TableCell>Ongoing</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Ibuprofen</TableCell>
-                      <TableCell>400mg, as needed</TableCell>
-                      <TableCell>Dr. Lee</TableCell>
-                      <TableCell>2023-04-01</TableCell>
-                      <TableCell>2023-04-14</TableCell>
-                    </TableRow>
+                  {prescriptions.map((prescription) => (
+            <TableRow key={prescription.medication}>
+              <TableCell>{prescription.medication}</TableCell>
+              <TableCell>{prescription.dosage}</TableCell>
+              <TableCell>{prescription.doctor.name}</TableCell>
+              <TableCell>{new Date(prescription.startDate).toLocaleDateString()}</TableCell>
+              <TableCell>{prescription.endDate ? new Date(prescription.endDate).toLocaleDateString() : 'Ongoing'}</TableCell>
+            </TableRow>
+          ))}
                   </TableBody>
                 </Table>
               </CardContent>
-              <CardFooter>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add New Prescription
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Prescription</DialogTitle>
-                      <DialogDescription>
-                        Add prescription details
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="doctor" className="text-right">
-                          Prescribed by
-                        </Label>
-                        <Input id="doctor" className="col-span-3" />
-                        <Label htmlFor="medication" className="text-right">
-                          Medication
-                        </Label>
-                        <Input id="medication" className="col-span-3" />
-                        <Label htmlFor="dosage" className="text-right">
-                          Dosage
-                        </Label>
-                        <Input id="dosage" className="col-span-3" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="date" className="text-right">
-                          Start Date
-                        </Label>
-                        <Input id="date" type="date" className="col-span-3" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="date" className="text-right">
-                          End Date
-                        </Label>
-                        <Input id="date" type="date" className="col-span-3" />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit">Add Prescription</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </CardFooter>
             </Card>
           </TabsContent>
 

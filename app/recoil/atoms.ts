@@ -5,3 +5,8 @@ export const role = atom({
   key: 'role', // unique ID
   default: '', // default value (empty string)
 });
+
+export const userId = atom({
+  key: 'userId', // unique ID
+  default: '', // default value (empty string)
+});
