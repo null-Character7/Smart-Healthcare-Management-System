@@ -34,3 +34,38 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    // Parse the incoming request body
+    const { doctorId, patientId, date, timeSlot, reason } = await req.json();
+
+    // Validate required fields
+    if (!doctorId || !patientId || !date || !timeSlot || !reason) {
+      return NextResponse.json(
+        { message: 'All fields are required' },
+        { status: 400 }
+      );
+    }
+
+    // Create new appointment
+    const newAppointment = await prismaClient.appointment.create({
+      data: {
+        doctorId: parseInt(doctorId), // convert doctorId to an integer
+        patientId: parseInt(patientId), // convert patientId to an integer
+        date: new Date(date), // make sure date is a valid Date object
+        timeSlot,
+        reason,
+      },
+    });
+
+    // Return the created appointment as the response
+    return NextResponse.json(newAppointment, { status: 201 });
+  } catch (error) {
+    console.error('Error creating appointment:', error);
+    return NextResponse.json(
+      { message: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}

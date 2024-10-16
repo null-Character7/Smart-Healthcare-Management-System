@@ -4,19 +4,12 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BrainCircuit, CalendarCheck, Pill, Stethoscope } from "lucide-react"
+import { useRouter } from 'next/navigation'
 
 export function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const router = useRouter();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -104,127 +97,6 @@ export function Landing() {
               </div>
             </div>
           )}
-          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-            <nav className="flex items-center">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="mr-2">Sign In</Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Sign In</SheetTitle>
-                    <SheetDescription>
-                      Enter your credentials to access your account.
-                    </SheetDescription>
-                  </SheetHeader>
-                  <Tabs defaultValue="patient" className="w-full mt-4">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="patient">Patient</TabsTrigger>
-                      <TabsTrigger value="doctor">Doctor</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="patient">
-                      <form className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="patient-email">Email</Label>
-                          <Input id="patient-email" type="email" placeholder="patient@example.com" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="patient-password">Password</Label>
-                          <Input id="patient-password" type="password" />
-                        </div>
-                        <Button className="w-full">Sign In as Patient</Button>
-                      </form>
-                    </TabsContent>
-                    <TabsContent value="doctor">
-                      <form className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="doctor-email">Email</Label>
-                          <Input id="doctor-email" type="email" placeholder="doctor@example.com" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="doctor-password">Password</Label>
-                          <Input id="doctor-password" type="password" />
-                        </div>
-                        <Button className="w-full">Sign In as Doctor</Button>
-                      </form>
-                    </TabsContent>
-                  </Tabs>
-                  <div className="mt-4 text-center text-sm">
-                    <a href="#" className="text-primary hover:underline">Forgot password?</a>
-                  </div>
-                </SheetContent>
-              </Sheet>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button>Register</Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Register</SheetTitle>
-                    <SheetDescription>
-                      Create a new account to get started.
-                    </SheetDescription>
-                  </SheetHeader>
-                  <Tabs defaultValue="patient" className="w-full mt-4">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="patient">Patient</TabsTrigger>
-                      <TabsTrigger value="doctor">Doctor</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="patient">
-                      <form className="space-y-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="patient-name">Full Name</Label>
-                          <Input id="patient-name" placeholder="John Doe" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="patient-email">Email</Label>
-                          <Input id="patient-email" type="email" placeholder="patient@example.com" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="patient-password">Password</Label>
-                          <Input id="patient-password" type="password" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="patient-confirm-password">Confirm Password</Label>
-                          <Input id="patient-confirm-password" type="password" />
-                        </div>
-                        <Button className="w-full">Register as Patient</Button>
-                      </form>
-                    </TabsContent>
-                    <TabsContent value="doctor">
-                      <form className="space-y-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="doctor-name">Full Name</Label>
-                          <Input id="doctor-name" placeholder="Dr. Jane Smith" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="doctor-email">Email</Label>
-                          <Input id="doctor-email" type="email" placeholder="doctor@example.com" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="doctor-password">Password</Label>
-                          <Input id="doctor-password" type="password" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="doctor-confirm-password">Confirm Password</Label>
-                          <Input id="doctor-confirm-password" type="password" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="doctor-specialization">Specialization</Label>
-                          <Input id="doctor-specialization" placeholder="e.g., Cardiology" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="doctor-license">License Number</Label>
-                          <Input id="doctor-license" placeholder="Enter your medical license number" />
-                        </div>
-                        <Button className="w-full">Register as Doctor</Button>
-                      </form>
-                    </TabsContent>
-                  </Tabs>
-                </SheetContent>
-              </Sheet>
-            </nav>
-          </div>
         </div>
       </header>
       <main className="flex-1">
@@ -240,8 +112,8 @@ export function Landing() {
                 </p>
               </div>
               <div className="space-x-4">
-                <Button>Get Started</Button>
-                <Button variant="outline">Learn More</Button>
+              <Button onClick={() => router.push("/dashboard")}>Get Started</Button>
+              <Button variant="outline">Learn More</Button>
               </div>
             </div>
           </div>
