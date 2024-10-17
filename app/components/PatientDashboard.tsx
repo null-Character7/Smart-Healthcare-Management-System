@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Card,
   CardContent,
@@ -19,7 +19,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -28,16 +28,28 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar } from "@/components/ui/calendar"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { CalendarDays, FileText, Activity, Plus, AlertTriangle } from 'lucide-react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import axios from 'axios';
-import { useRecoilValue } from 'recoil'
-import { userId } from '../recoil/atoms'
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  CalendarDays,
+  FileText,
+  Activity,
+  Plus,
+  AlertTriangle,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import axios from "axios";
+import { useRecoilValue } from "recoil";
+import { userId } from "../recoil/atoms";
 
 interface Prescription {
   medication: string;
@@ -47,27 +59,101 @@ interface Prescription {
   endDate: string;
 }
 
+type Doctor = {
+  id: number;
+  name: string;
+  specialty: string;
+};
+
 export function PatientDashboard() {
-  const patientId = useRecoilValue(userId)
-  const [date, setDate] = useState<Date | undefined>(new Date())
+  const patientId = useRecoilValue(userId);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>();
+  const [selectedDate, setSelectedDate] = useState("");
+  const [reason, setReason] = useState("");
+
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
-      console.log("patient id is ",patientId)
+      console.log("patient id is ", patientId);
       try {
         const response = await axios.get(`/api/patients/prescriptions`, {
           params: { patientId },
         });
         setPrescriptions(response.data); // Axios automatically parses JSON
       } catch (error: any) {
-        console.error('Error fetching prescriptions:', error);
+        console.error("Error fetching prescriptions:", error);
       } finally {
       }
     };
 
+    const fetchDoctors = async () => {
+      try {
+        const response = await fetch("/api/doctors"); // Replace with your actual API route
+        const data = await response.json();
+        setDoctors(data.doctors);
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+      }
+    };
+
+    fetchDoctors();
+
     fetchPrescriptions();
   }, [patientId]);
+
+
+  const timeSlots = [
+    "9:00",
+    "9:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+  ];
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+
+  const bookAppointment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const appointmentData = {
+      doctorId: selectedDoctor?.id,
+      patientId: patientId,
+      date: selectedDate,
+      timeSlot: selectedSlot,
+      reason,
+    };
+    console.log("appointment data is ",appointmentData)
+
+    try {
+      const response = await fetch('/api/patients/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData),
+      });
+
+      if (response.ok) {
+        console.log('Appointment successfully created');
+      } else {
+        console.error('Error creating appointment');
+      }
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -107,7 +193,9 @@ export function PatientDashboard() {
           <TabsList className="mb-4">
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-            <TabsTrigger value="ai-recommendations">Health Insights</TabsTrigger>
+            <TabsTrigger value="ai-recommendations">
+              Health Insights
+            </TabsTrigger>
           </TabsList>
 
           {/* Appointments Tab */}
@@ -115,7 +203,9 @@ export function PatientDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Appointments</CardTitle>
-                <CardDescription>View your upcoming and past appointments</CardDescription>
+                <CardDescription>
+                  View your upcoming and past appointments
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex space-x-4">
@@ -128,7 +218,9 @@ export function PatientDashboard() {
                     />
                   </div>
                   <div className="w-1/2">
-                    <h3 className="text-lg font-semibold mb-2">Appointments for {date?.toDateString()}</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Appointments for {date?.toDateString()}
+                    </h3>
                     <ScrollArea className="h-[300px]">
                       <div className="space-y-4">
                         <AppointmentCard
@@ -168,14 +260,33 @@ export function PatientDashboard() {
                         <Label htmlFor="doctor" className="text-right">
                           Doctor
                         </Label>
-                        <Select>
+                        <Select
+                        value={
+                          selectedDoctor
+                            ? `dr-${selectedDoctor.name.toLowerCase().replace(/\s+/g, "-")}`
+                            : undefined
+                        }
+                        onValueChange={(value) => {
+                          const selected = doctors.find(
+                            (doctor) => `dr-${doctor.name.toLowerCase().replace(/\s+/g, '-')}` === value
+                          );
+                          setSelectedDoctor(selected); // Set the full doctor object
+                        }}
+                        >
                           <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select a doctor" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="dr-smith">Dr. Smith (General Practitioner)</SelectItem>
-                            <SelectItem value="dr-johnson">Dr. Johnson (Cardiologist)</SelectItem>
-                            <SelectItem value="dr-lee">Dr. Lee (Dermatologist)</SelectItem>
+                            {doctors.map((doctor) => (
+                              <SelectItem
+                                key={doctor.id}
+                                value={`dr-${doctor.name
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "-")}`}
+                              >
+                                {doctor.name} ({doctor.specialty})
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -183,17 +294,51 @@ export function PatientDashboard() {
                         <Label htmlFor="date" className="text-right">
                           Preferred Date
                         </Label>
-                        <Input id="date" type="date" className="col-span-3" />
+                        <Input
+                          id="date"
+                          type="date"
+                          className="col-span-3"
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">Time Slot</Label>
+                        <div className="col-span-3">
+                          <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+                            <div className="grid grid-cols-3 gap-2">
+                              {timeSlots.map((slot) => (
+                                <Button
+                                  key={slot}
+                                  variant={
+                                    selectedSlot === slot
+                                      ? "default"
+                                      : "outline"
+                                  }
+                                  onClick={() => setSelectedSlot(slot)}
+                                  className="w-full"
+                                >
+                                  {slot}
+                                </Button>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="reason" className="text-right">
                           Reason for Visit
                         </Label>
-                        <Input id="reason" className="col-span-3" />
+                        <Input
+                          id="reason"
+                          className="col-span-3"
+                          value={reason}
+                          onChange={(e) => setReason(e.target.value)}
+                        />
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit">Book Appointment</Button>
+                      <Button type="submit" onClick={bookAppointment}>Book Appointment</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -201,13 +346,14 @@ export function PatientDashboard() {
             </Card>
           </TabsContent>
 
-
           {/* Prescriptions Tab */}
           <TabsContent value="prescriptions">
             <Card>
               <CardHeader>
                 <CardTitle>Prescriptions</CardTitle>
-                <CardDescription>View your current and past prescriptions</CardDescription>
+                <CardDescription>
+                  View your current and past prescriptions
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -221,15 +367,25 @@ export function PatientDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                  {prescriptions.map((prescription) => (
-            <TableRow key={prescription.medication}>
-              <TableCell>{prescription.medication}</TableCell>
-              <TableCell>{prescription.dosage}</TableCell>
-              <TableCell>{prescription.doctor.name}</TableCell>
-              <TableCell>{new Date(prescription.startDate).toLocaleDateString()}</TableCell>
-              <TableCell>{prescription.endDate ? new Date(prescription.endDate).toLocaleDateString() : 'Ongoing'}</TableCell>
-            </TableRow>
-          ))}
+                    {prescriptions.map((prescription) => (
+                      <TableRow key={prescription.medication}>
+                        <TableCell>{prescription.medication}</TableCell>
+                        <TableCell>{prescription.dosage}</TableCell>
+                        <TableCell>{prescription.doctor.name}</TableCell>
+                        <TableCell>
+                          {new Date(
+                            prescription.startDate
+                          ).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {prescription.endDate
+                            ? new Date(
+                                prescription.endDate
+                              ).toLocaleDateString()
+                            : "Ongoing"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -241,24 +397,35 @@ export function PatientDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>AI-Powered Health Insights</CardTitle>
-                <CardDescription>Personalized health recommendations based on your data</CardDescription>
+                <CardDescription>
+                  Personalized health recommendations based on your data
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-green-600">Exercise Recommendation</CardTitle>
+                      <CardTitle className="text-green-600">
+                        Exercise Recommendation
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      Based on your recent activity levels, we recommend increasing your daily step count to 10,000 steps. This can help improve your cardiovascular health and overall fitness.
+                      Based on your recent activity levels, we recommend
+                      increasing your daily step count to 10,000 steps. This can
+                      help improve your cardiovascular health and overall
+                      fitness.
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-blue-600">Dietary Suggestion</CardTitle>
+                      <CardTitle className="text-blue-600">
+                        Dietary Suggestion
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      Your recent blood work shows slightly elevated cholesterol levels. Consider incorporating more omega-3 rich foods like fish, flaxseeds, and walnuts into your diet.
+                      Your recent blood work shows slightly elevated cholesterol
+                      levels. Consider incorporating more omega-3 rich foods
+                      like fish, flaxseeds, and walnuts into your diet.
                     </CardContent>
                   </Card>
                   <Card>
@@ -269,7 +436,10 @@ export function PatientDashboard() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      Your blood pressure readings have been consistently high over the past month. Please schedule an appointment with your doctor to discuss potential treatments or lifestyle changes.
+                      Your blood pressure readings have been consistently high
+                      over the past month. Please schedule an appointment with
+                      your doctor to discuss potential treatments or lifestyle
+                      changes.
                     </CardContent>
                   </Card>
                 </div>
@@ -282,24 +452,48 @@ export function PatientDashboard() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }
 
-function AppointmentCard({ time, doctorName, specialty, status }: { time: string; doctorName: string; specialty: string; status: 'Upcoming' | 'Past' }) {
+function AppointmentCard({
+  time,
+  doctorName,
+  specialty,
+  status,
+}: {
+  time: string;
+  doctorName: string;
+  specialty: string;
+  status: "Upcoming" | "Past";
+}) {
   return (
     <Card>
       <CardContent className="p-4 flex items-center space-x-4">
         <Avatar>
-          <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${doctorName}`} alt={doctorName} />
-          <AvatarFallback>{doctorName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+          <AvatarImage
+            src={`https://api.dicebear.com/6.x/initials/svg?seed=${doctorName}`}
+            alt={doctorName}
+          />
+          <AvatarFallback>
+            {doctorName
+              .split(" ")
+              .map((n) => n[0])
+              .join("")}
+          </AvatarFallback>
         </Avatar>
         <div>
           <p className="font-semibold">{time}</p>
           <p>{doctorName}</p>
           <p className="text-sm text-gray-500">{specialty}</p>
-          <p className={`text-sm ${status === 'Upcoming' ? 'text-green-500' : 'text-gray-500'}`}>{status}</p>
+          <p
+            className={`text-sm ${
+              status === "Upcoming" ? "text-green-500" : "text-gray-500"
+            }`}
+          >
+            {status}
+          </p>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

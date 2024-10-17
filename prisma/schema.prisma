@@ -36,6 +36,7 @@ model Appointment {
   date              DateTime
   timeSlot          String              // e.g. "09:00 AM", "10:00 AM"
   reason            String
+  confirmed         Boolean
   doctor            Doctor              @relation("DoctorAppointments", fields: [doctorId], references: [id])
   patient           Patient             @relation("PatientAppointments", fields: [patientId], references: [id])
 }
@@ -49,6 +50,7 @@ model Prescription {
   dosage            String
   startDate         DateTime
   endDate           DateTime
+  confirmed         Boolean   
   patient           Patient             @relation("PatientPrescriptions", fields: [patientId], references: [id])
   doctor            Doctor              @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
 }

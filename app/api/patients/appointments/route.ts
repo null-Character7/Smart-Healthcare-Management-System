@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
         date: new Date(date), // make sure date is a valid Date object
         timeSlot,
         reason,
+        confirmed:false
       },
     });
 

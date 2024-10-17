@@ -112,7 +112,7 @@ export function Landing() {
                 </p>
               </div>
               <div className="space-x-4">
-              <Button onClick={() => router.push("/dashboard")}>Get Started</Button>
+              <Button onClick={() => router.push("/auth/signin")}>Get Started</Button>
               <Button variant="outline">Learn More</Button>
               </div>
             </div>
