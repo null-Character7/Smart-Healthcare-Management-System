@@ -1,4 +1,3 @@
-"use client"
 import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import {
@@ -16,100 +15,151 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { format, isSameDay, parseISO, startOfToday } from 'date-fns'
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { format, parseISO } from 'date-fns'
+import axios from 'axios'
 
 interface Appointment {
   id: string
+  dateTime: string
   patientName: string
   age: number
   lastVisit: string
   reason: string
-  dateTime: string
+  status: 'pending' | 'confirmed'
 }
 
-const mockAppointments: Appointment[] = [
-  { id: '1', patientName: 'John Doe', age: 35, lastVisit: '2023-05-15', reason: 'Annual Checkup', dateTime: '2023-06-20T09:00:00' },
-  { id: '2', patientName: 'Jane Smith', age: 28, lastVisit: '2023-04-22', reason: 'Follow-up', dateTime: '2023-06-20T10:30:00' },
-  { id: '3', patientName: 'Bob Johnson', age: 45, lastVisit: '2023-03-10', reason: 'Consultation', dateTime: '2023-06-20T14:00:00' },
-  { id: '4', patientName: 'Alice Brown', age: 52, lastVisit: '2023-05-30', reason: 'Test Results', dateTime: '2023-06-21T11:00:00' },
-  { id: '5', patientName: 'Charlie Wilson', age: 40, lastVisit: '2023-06-05', reason: 'Prescription Renewal', dateTime: '2023-06-21T15:30:00' },
+const dummyAppointments: Appointment[] = [
+  { id: '1', dateTime: '2023-06-20T09:00:00', patientName: 'John Doe', age: 35, lastVisit: '2023-01-15', reason: 'Annual Checkup', status: 'pending' },
+  { id: '2', dateTime: '2023-06-20T10:30:00', patientName: 'Jane Smith', age: 28, lastVisit: '2023-03-22', reason: 'Follow-up', status: 'pending' },
+  { id: '3', dateTime: '2023-06-20T14:00:00', patientName: 'Bob Johnson', age: 45, lastVisit: '2022-11-10', reason: 'Consultation', status: 'confirmed' },
+  { id: '4', dateTime: '2023-06-21T11:00:00', patientName: 'Alice Brown', age: 52, lastVisit: '2023-05-05', reason: 'Test Results', status: 'pending' },
+  { id: '5', dateTime: '2023-06-19T15:30:00', patientName: 'Charlie Wilson', age: 40, lastVisit: '2023-02-28', reason: 'Prescription Renewal', status: 'confirmed' },
+  { id: '6', dateTime: '2023-06-22T13:00:00', patientName: 'Eva Martinez', age: 31, lastVisit: '2023-04-10', reason: 'Skin Rash', status: 'pending' },
+  { id: '7', dateTime: '2023-06-22T16:00:00', patientName: 'David Lee', age: 55, lastVisit: '2023-01-20', reason: 'Blood Pressure Check', status: 'pending' },
+  { id: '8', dateTime: '2023-06-23T10:00:00', patientName: 'Grace Taylor', age: 42, lastVisit: '2022-12-05', reason: 'Diabetes Follow-up', status: 'confirmed' },
 ]
 
 export function Appointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
 
   useEffect(() => {
-    // In a real application, you would fetch appointments from an API here
-    const sortedAppointments = [...mockAppointments].sort((a, b) => {
-      const dateA = parseISO(a.dateTime)
-      const dateB = parseISO(b.dateTime)
-      if (isSameDay(dateA, dateB)) {
-        return dateA.getTime() - dateB.getTime()
+    // Simulating data fetching delay
+    const fetchAppointments = async () => {
+      try {
+        const response = await axios.get(`/api/doctors/appointments/all`, {
+          params: { doctorId },
+        });
+
+        setAppointments(response.data.filter((appointments:any) => appointments.confirmed === true));
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
       }
-      return dateA.getTime() - dateB.getTime()
-    })
-    setAppointments(sortedAppointments)
-  }, [])
+    };
+    fetchAppointments();
+  }, [doctorId])
 
   const handleConfirmAppointment = (id: string) => {
-    // In a real application, you would update the appointment status in your backend here
-    console.log(`Confirming appointment with id: ${id}`)
+    setAppointments(prevAppointments =>
+      prevAppointments.map(appointment =>
+        appointment.id === id ? { ...appointment, status: 'confirmed' } : appointment
+      )
+    )
   }
 
-  const today = startOfToday()
+  const pendingAppointments = appointments.filter(appointment => appointment.status === 'pending')
+  const confirmedAppointments = appointments.filter(appointment => appointment.status === 'confirmed')
+
+  if (appointments.length === 0) {
+    return <div>Loading appointments...</div>
+  }
 
   return (
     <div className="container mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle>Appointments List</CardTitle>
-          <CardDescription>View and manage upcoming appointments</CardDescription>
+          <CardTitle>Your Appointments</CardTitle>
+          <CardDescription>Manage your scheduled appointments</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date & Time</TableHead>
-                <TableHead>Patient Name</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Last Visit</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {appointments.map((appointment) => {
-                const appointmentDate = parseISO(appointment.dateTime)
-                const isToday = isSameDay(appointmentDate, today)
-                return (
-                  <TableRow key={appointment.id}>
-                    <TableCell>
-                      <span className={isToday ? "font-bold text-primary" : ""}>
-                        {format(appointmentDate, 'MMM d, yyyy')}
-                      </span>
-                      <br />
-                      {format(appointmentDate, 'h:mm a')}
-                    </TableCell>
-                    <TableCell>{appointment.patientName}</TableCell>
-                    <TableCell>{appointment.age}</TableCell>
-                    <TableCell>{format(parseISO(appointment.lastVisit), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{appointment.reason}</TableCell>
-                    <TableCell>
-                      <Button 
-                        onClick={() => handleConfirmAppointment(appointment.id)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Confirm
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+          <Tabs defaultValue="pending">
+            <TabsList>
+              <TabsTrigger value="pending">Pending ({pendingAppointments.length})</TabsTrigger>
+              <TabsTrigger value="upcoming">Upcoming ({confirmedAppointments.length})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="pending">
+              <AppointmentTable
+                appointments={pendingAppointments}
+                onConfirm={handleConfirmAppointment}
+                showActions={true}
+              />
+            </TabsContent>
+            <TabsContent value="upcoming">
+              <AppointmentTable
+                appointments={confirmedAppointments}
+                onConfirm={handleConfirmAppointment}
+                showActions={false}
+              />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+interface AppointmentTableProps {
+  appointments: Appointment[]
+  onConfirm: (id: string) => void
+  showActions: boolean
+}
+
+function AppointmentTable({ appointments, onConfirm, showActions }: AppointmentTableProps) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Date & Time</TableHead>
+          <TableHead>Patient Name</TableHead>
+          <TableHead>Age</TableHead>
+          <TableHead>Last Visit</TableHead>
+          <TableHead>Reason</TableHead>
+          <TableHead>Status</TableHead>
+          {showActions && <TableHead>Action</TableHead>}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {appointments.map((appointment) => (
+          <TableRow key={appointment.id}>
+            <TableCell>{format(parseISO(appointment.dateTime), 'MMM d, yyyy HH:mm')}</TableCell>
+            <TableCell>{appointment.patientName}</TableCell>
+            <TableCell>{appointment.age}</TableCell>
+            <TableCell>{format(parseISO(appointment.lastVisit), 'MMM d, yyyy')}</TableCell>
+            <TableCell>{appointment.reason}</TableCell>
+            <TableCell>
+              <Badge 
+                variant={appointment.status === 'confirmed' ? "default" : "default"}
+              >
+                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+              </Badge>
+            </TableCell>
+            {showActions && (
+              <TableCell>
+                {appointment.status === 'pending' && (
+                  <Button 
+                    onClick={() => onConfirm(appointment.id)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Confirm
+                  </Button>
+                )}
+              </TableCell>
+            )}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   )
 }

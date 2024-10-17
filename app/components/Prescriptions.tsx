@@ -17,9 +17,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { format, parseISO } from 'date-fns'
-import { Check, AlertCircle } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { format, parseISO } from 'date-fns'
+import { AlertCircle } from 'lucide-react'
+import { userId } from '../recoil/atoms'
+import { useRecoilValue } from 'recoil'
+import axios from 'axios'
 
 interface Prescription {
   id: string
@@ -28,34 +32,43 @@ interface Prescription {
   prescribedBy: string
   startDate: string
   endDate: string
-  isConfirmed: boolean
+  confirmed: boolean
 }
 
-const mockPrescriptions: Prescription[] = [
-  { id: '1', medication: 'Amoxicillin', dosage: '500mg 3x daily', prescribedBy: 'Dr. Smith', startDate: '2023-06-15', endDate: '2023-06-22', isConfirmed: false },
-  { id: '2', medication: 'Lisinopril', dosage: '10mg 1x daily', prescribedBy: 'Dr. Johnson', startDate: '2023-06-10', endDate: '2023-12-10', isConfirmed: false },
-  { id: '3', medication: 'Metformin', dosage: '1000mg 2x daily', prescribedBy: 'Dr. Lee', startDate: '2023-05-01', endDate: '2023-11-01', isConfirmed: true },
-  { id: '4', medication: 'Simvastatin', dosage: '20mg 1x daily', prescribedBy: 'Dr. Brown', startDate: '2023-06-20', endDate: '2024-06-20', isConfirmed: false },
-]
 
 export function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
-  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null)
+  const patientId = useRecoilValue(userId);
 
   useEffect(() => {
-    // In a real application, you would fetch prescriptions from an API here
-    setPrescriptions(mockPrescriptions)
-  }, [])
+    const fetchPrescriptions = async () => {
+      console.log("patient id is ", patientId);
+      try {
+        const response = await axios.get(`/api/patients/prescriptions`, {
+          params: { patientId },
+        });
+        setPrescriptions(response.data); // Axios automatically parses JSON
+      } catch (error: any) {
+        console.error("Error fetching prescriptions:", error);
+      } finally {
+      }
+    };
+    fetchPrescriptions();
+  }, [patientId])
 
   const handleConfirmPrescription = (id: string) => {
-    // In a real application, you would update the prescription status in your backend here
     setPrescriptions(prevPrescriptions =>
       prevPrescriptions.map(prescription =>
         prescription.id === id ? { ...prescription, isConfirmed: true } : prescription
       )
     )
-    setConfirmationMessage(`Prescription ${id} has been confirmed.`)
-    setTimeout(() => setConfirmationMessage(null), 3000) // Clear message after 3 seconds
+  }
+
+  const confirmedPrescriptions = prescriptions.filter(p => p.confirmed)
+  const unconfirmedPrescriptions = prescriptions.filter(p => !p.confirmed)
+
+  if (prescriptions.length === 0) {
+    return <div>Loading prescriptions...</div>
   }
 
   return (
@@ -66,66 +79,88 @@ export function Prescriptions() {
           <CardDescription>Review and confirm your current prescriptions</CardDescription>
         </CardHeader>
         <CardContent>
-          {confirmationMessage && (
-            <Alert className="mb-4">
-              <Check className="h-4 w-4" />
-              <AlertTitle>Success</AlertTitle>
-              <AlertDescription>{confirmationMessage}</AlertDescription>
-            </Alert>
-          )}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Medication</TableHead>
-                <TableHead>Dosage</TableHead>
-                <TableHead>Prescribed By</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {prescriptions.map((prescription) => (
-                <TableRow key={prescription.id}>
-                  <TableCell>{prescription.medication}</TableCell>
-                  <TableCell>{prescription.dosage}</TableCell>
-                  <TableCell>{prescription.prescribedBy}</TableCell>
-                  <TableCell>{format(parseISO(prescription.startDate), 'MMM d, yyyy')}</TableCell>
-                  <TableCell>{format(parseISO(prescription.endDate), 'MMM d, yyyy')}</TableCell>
-                  <TableCell>
-                    {prescription.isConfirmed ? (
-                      <Badge variant="success">Confirmed</Badge>
-                    ) : (
-                      <Badge variant="warning">Pending</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {!prescription.isConfirmed && (
-                      <Button 
-                        onClick={() => handleConfirmPrescription(prescription.id)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Confirm
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {prescriptions.some(p => !p.isConfirmed) && (
-            <Alert variant="warning" className="mt-4">
+          {unconfirmedPrescriptions.length > 0 && (
+            <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Attention</AlertTitle>
               <AlertDescription>
-                You have unconfirmed prescriptions. Please review and confirm them to ensure you're following your treatment plan.
+                You have {unconfirmedPrescriptions.length} unconfirmed prescription(s). Please review and confirm them to ensure you are following your treatment plan.
               </AlertDescription>
             </Alert>
           )}
+          <Tabs defaultValue="unconfirmed">
+            <TabsList>
+              <TabsTrigger value="unconfirmed">Unconfirmed ({unconfirmedPrescriptions.length})</TabsTrigger>
+              <TabsTrigger value="confirmed">Confirmed ({confirmedPrescriptions.length})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="unconfirmed">
+              <PrescriptionTable
+                prescriptions={unconfirmedPrescriptions}
+                onConfirm={handleConfirmPrescription}
+                showConfirmButton={true}
+              />
+            </TabsContent>
+            <TabsContent value="confirmed">
+              <PrescriptionTable
+                prescriptions={confirmedPrescriptions}
+                onConfirm={handleConfirmPrescription}
+                showConfirmButton={false}
+              />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+interface PrescriptionTableProps {
+  prescriptions: Prescription[]
+  onConfirm: (id: string) => void
+  showConfirmButton: boolean
+}
+
+function PrescriptionTable({ prescriptions, onConfirm, showConfirmButton }: PrescriptionTableProps) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Medication</TableHead>
+          <TableHead>Dosage</TableHead>
+          <TableHead>Prescribed By</TableHead>
+          <TableHead>Start Date</TableHead>
+          <TableHead>End Date</TableHead>
+          <TableHead>Status</TableHead>
+          {showConfirmButton && <TableHead>Action</TableHead>}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {prescriptions.map((prescription) => (
+          <TableRow key={prescription.id}>
+            <TableCell>{prescription.medication}</TableCell>
+            <TableCell>{prescription.dosage}</TableCell>
+            <TableCell>{prescription.prescribedBy}</TableCell>
+            <TableCell>{format(parseISO(prescription.startDate), 'MMM d, yyyy')}</TableCell>
+            <TableCell>{format(parseISO(prescription.endDate), 'MMM d, yyyy')}</TableCell>
+            <TableCell>
+              <Badge variant={prescription.confirmed ? "default" : "destructive"}>
+                {prescription.confirmed ? "Confirmed" : "Pending"}
+              </Badge>
+            </TableCell>
+            {showConfirmButton && (
+              <TableCell>
+                <Button 
+                  onClick={() => onConfirm(prescription.id)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Confirm
+                </Button>
+              </TableCell>
+            )}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   )
 }

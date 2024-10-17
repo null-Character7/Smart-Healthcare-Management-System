@@ -108,7 +108,7 @@ export function DoctorDashboard() {
           params: { doctorId },
         });
 
-        setPrescriptions(response.data);
+        setPrescriptions(response.data.filter((prescription:any) => prescription.confirmed === true));
       } catch (error) {
         console.error("Error fetching prescriptions:", error);
       }
@@ -119,7 +119,7 @@ export function DoctorDashboard() {
           params: { doctorId },
         });
 
-        setAppointments(response.data);
+        setAppointments(response.data.filter((appointments:any) => appointments.confirmed === true));
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }

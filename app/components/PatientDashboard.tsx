@@ -83,7 +83,7 @@ export function PatientDashboard() {
         const response = await axios.get(`/api/patients/prescriptions`, {
           params: { patientId },
         });
-        setPrescriptions(response.data); // Axios automatically parses JSON
+        setPrescriptions(response.data.filter((prescription:any) => prescription.confirmed === true)); // Axios automatically parses JSON
       } catch (error: any) {
         console.error("Error fetching prescriptions:", error);
       } finally {
