@@ -35,3 +35,27 @@ export async function GET(req: NextRequest) {
   }
 }
 
+
+export async function PUT(req: NextRequest) {
+  try {
+    // Parse the request body to extract the prescription ID
+    const { id } = await req.json();
+
+    if (!id) {
+      return NextResponse.json({ message: "Prescription ID is required" }, { status: 400 });
+    }
+
+    // Update the prescription's confirmed field to true
+    const updatedPrescription = await prismaClient.prescription.update({
+      where: { id: Number(id) },
+      data: { confirmed: true },
+    });
+
+    // Return the updated prescription as a JSON response
+    return NextResponse.json(updatedPrescription, { status: 200 });
+
+  } catch (error) {
+    console.error("Error updating prescription:", error);
+    return NextResponse.json({ message: "Internal Server Error", error }, { status: 500 });
+  }
+}

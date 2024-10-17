@@ -48,8 +48,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
-import { useRecoilValue } from "recoil";
-import { userId } from "../recoil/atoms";
+import { useSession } from "next-auth/react";
 
 interface Prescription {
   medication: string;
@@ -66,7 +65,9 @@ type Doctor = {
 };
 
 export function PatientDashboard() {
-  const patientId = useRecoilValue(userId);
+  const { data: session } = useSession(); // Access session and loading status
+
+  const patientId=session?.user.id;
   const [doctors, setDoctors] = useState<Doctor[]>([]);
 
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>();

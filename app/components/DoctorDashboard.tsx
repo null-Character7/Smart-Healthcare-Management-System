@@ -46,8 +46,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import axios from "axios";
-import { useRecoilValue } from "recoil";
-import { userId } from "../recoil/atoms";
 import {
   Select,
   SelectContent,
@@ -55,6 +53,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSession } from "next-auth/react";
 interface Prescription {
   patient: {
     name: string;
@@ -89,7 +88,9 @@ export function DoctorDashboard() {
   const [dosage, setDosage] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const doctorId = useRecoilValue(userId);
+  const { data: session } = useSession(); // Access session and loading status
+
+  const doctorId=session?.user.id;
   useEffect(() => {
     const fetchPatients = async () => {
       try {

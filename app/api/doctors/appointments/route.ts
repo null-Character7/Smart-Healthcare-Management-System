@@ -41,3 +41,27 @@ export async function GET(req: NextRequest) {
   }
 }
 // GET /api/doctors/appointments?doctorId=1&date=2024-10-15
+
+export async function PUT(req: NextRequest) {
+  try {
+    // Parse the request body to get the appointment ID
+    const { id } = await req.json();
+
+    if (!id) {
+      return NextResponse.json({ message: "Appointment ID is required" }, { status: 400 });
+    }
+
+    // Update the appointment's confirmed field to true
+    const updatedAppointment = await prismaClient.appointment.update({
+      where: { id: Number(id) },
+      data: { confirmed: true },
+    });
+
+    // Return the updated appointment as a JSON response
+    return NextResponse.json(updatedAppointment, { status: 200 });
+
+  } catch (error) {
+    console.error("Error updating appointment:", error);
+    return NextResponse.json({ message: "Internal Server Error", error }, { status: 500 });
+  }
+}

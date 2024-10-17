@@ -1,32 +1,22 @@
 // pages/dashboard.tsx
 "use client"
 import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { DoctorDashboard } from '../components/DoctorDashboard';
 import { PatientDashboard } from '../components/PatientDashboard';
-import { useRecoilState } from 'recoil';
-import { role } from '../recoil/atoms';
-import { userId } from '../recoil/atoms';
 
 export default function Dashboard() {
-  const [userRole,setUserRole] = useRecoilState(role); // Set the role in Recoil
-  const [id,setId] = useRecoilState(userId); // Set the role in Recoil
-
+  const [userRole, setUserRole] = useState<string | undefined>(undefined);
   const { data: session, status } = useSession(); // Access session and loading status
 
   // Check the session inside useEffect
   useEffect(() => {
-    if (session && session.user) {
-      // Only update if the values are different
-      if (session.user.userType !== userRole) {
-        setUserRole(session.user.userType);
-      }
-      
-      if (session.user.id !== id) {
-        setId(session.user.id);
-      }
+    if (status === 'authenticated' && session?.user) {
+      setUserRole(session.user.userType); // Set userRole from session
+    } else {
+      setUserRole(undefined); // Optionally reset or handle when user is not authenticated
     }
-  }, [session, userRole, id]);
+  }, [session, status]);
 
   // If the session is still loading, show a loading state
   if (status === "loading") {

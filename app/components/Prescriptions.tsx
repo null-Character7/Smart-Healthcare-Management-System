@@ -21,9 +21,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { format, parseISO } from 'date-fns'
 import { AlertCircle } from 'lucide-react'
-import { userId } from '../recoil/atoms'
-import { useRecoilValue } from 'recoil'
 import axios from 'axios'
+import { useSession } from 'next-auth/react'
 
 interface Prescription {
   id: string
@@ -38,7 +37,10 @@ interface Prescription {
 
 export function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
-  const patientId = useRecoilValue(userId);
+  const { data: session } = useSession(); // Access session and loading status
+
+  const patientId=session?.user.id;
+
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
@@ -47,7 +49,16 @@ export function Prescriptions() {
         const response = await axios.get(`/api/patients/prescriptions`, {
           params: { patientId },
         });
-        setPrescriptions(response.data); // Axios automatically parses JSON
+        const formattedPrescriptions = response.data.map((prescription: any) => ({
+          id: prescription.id,
+          medication: prescription.medication,
+          dosage: prescription.dosage,
+          prescribedBy: prescription.doctor.name,
+          startDate: prescription.startDate,
+          endDate: prescription.endDate,
+          confirmed: prescription.confirmed,
+        }));
+        setPrescriptions(formattedPrescriptions);
       } catch (error: any) {
         console.error("Error fetching prescriptions:", error);
       } finally {
@@ -56,12 +67,21 @@ export function Prescriptions() {
     fetchPrescriptions();
   }, [patientId])
 
-  const handleConfirmPrescription = (id: string) => {
+  const handleConfirmPrescription = async(id: string) => {
     setPrescriptions(prevPrescriptions =>
       prevPrescriptions.map(prescription =>
-        prescription.id === id ? { ...prescription, isConfirmed: true } : prescription
+        prescription.id === id ? { ...prescription, confirmed: true } : prescription
       )
     )
+    try {
+      const response = await axios.put('/api/patients/prescriptions', {
+        id: id,
+      });
+  
+      console.log('Prescription confirmed:', response.data);
+    } catch (error) {
+      console.error('Error confirming prescription:', error);
+    }
   }
 
   const confirmedPrescriptions = prescriptions.filter(p => p.confirmed)
