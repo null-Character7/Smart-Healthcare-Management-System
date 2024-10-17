@@ -48,6 +48,13 @@ import {
 import axios from "axios";
 import { useRecoilValue } from "recoil";
 import { userId } from "../recoil/atoms";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 interface Prescription {
   patient: {
     name: string;
@@ -67,12 +74,34 @@ interface Appointment {
   reason: string;
 }
 
+type Patient = {
+  id: number;
+  name: string;
+};
+
 export function DoctorDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [medication, setMedication] = useState("");
+  const [dosage, setDosage] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const doctorId = useRecoilValue(userId);
   useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await fetch('/api/patients'); // Replace with the actual API endpoint
+        const data = await response.json();
+        setPatients(data.patients);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      }
+    };
+
+    fetchPatients();
     const fetchPrescriptions = async () => {
       try {
         const response = await axios.get(`/api/doctors/prescriptions`, {
@@ -98,6 +127,37 @@ export function DoctorDashboard() {
     fetchAppointments();
     fetchPrescriptions();
   }, [doctorId]);
+
+  const savePrescription = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const prescriptionData = {
+      patientId: selectedPatient?.id,
+      doctorId: doctorId,
+      medication,
+      dosage,
+      startDate,
+      endDate,
+    };
+
+    try {
+      const response = await fetch("/api/doctors/prescriptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(prescriptionData),
+      });
+
+      if (response.ok) {
+        console.log("Prescription successfully added");
+      } else {
+        console.error("Error adding prescription");
+      }
+    } catch (error) {
+      console.error("Error adding prescription:", error);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -324,31 +384,83 @@ export function DoctorDashboard() {
                         <Label htmlFor="patient" className="text-right">
                           Prescribed to
                         </Label>
-                        <Input id="patient" className="col-span-3" />
+                        <Select
+                          value={
+                            selectedPatient ? selectedPatient.name : undefined
+                          }
+                          onValueChange={(value) => {
+                            const selected = patients.find(
+                              (patient) =>
+                                patient.name === value
+                            );
+                            setSelectedPatient(selected || null); // Set the selected patient object
+                          }}
+                        >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select a patient" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {patients.map((patient) => (
+                              <SelectItem
+                                key={patient.id}
+                                value={patient.name
+                                  }
+                              >
+                                {patient.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
                         <Label htmlFor="medication" className="text-right">
                           Medication
                         </Label>
-                        <Input id="medication" className="col-span-3" />
+                        <Input
+                          id="medication"
+                          className="col-span-3"
+                          value={medication}
+                          onChange={(e) => setMedication(e.target.value)}
+                        />
+
                         <Label htmlFor="dosage" className="text-right">
                           Dosage
                         </Label>
-                        <Input id="dosage" className="col-span-3" />
+                        <Input
+                          id="dosage"
+                          className="col-span-3"
+                          value={dosage}
+                          onChange={(e) => setDosage(e.target.value)}
+                        />
                       </div>
+
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="date" className="text-right">
+                        <Label htmlFor="startDate" className="text-right">
                           Start Date
                         </Label>
-                        <Input id="date" type="date" className="col-span-3" />
+                        <Input
+                          id="startDate"
+                          type="date"
+                          className="col-span-3"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                        />
                       </div>
+
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="date" className="text-right">
+                        <Label htmlFor="endDate" className="text-right">
                           End Date
                         </Label>
-                        <Input id="date" type="date" className="col-span-3" />
+                        <Input
+                          id="endDate"
+                          type="date"
+                          className="col-span-3"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                        />
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit">Add Prescription</Button>
+                      <Button type="submit" onClick={savePrescription}>Add Prescription</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
