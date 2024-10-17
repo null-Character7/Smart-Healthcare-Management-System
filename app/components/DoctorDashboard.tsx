@@ -65,12 +65,14 @@ interface Prescription {
 }
 
 interface Appointment {
+  id: string;
   patient: {
     name: string;
     age: number;
   };
   date: string;
   reason: string;
+  slot: string;
 }
 
 type Patient = {
@@ -80,6 +82,7 @@ type Patient = {
 
 export function DoctorDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [curAppointments, setCurAppointments] = useState<Appointment[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -90,15 +93,15 @@ export function DoctorDashboard() {
   const [endDate, setEndDate] = useState("");
   const { data: session } = useSession(); // Access session and loading status
 
-  const doctorId=session?.user.id;
+  const doctorId = session?.user.id;
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('/api/patients'); // Replace with the actual API endpoint
+        const response = await fetch("/api/patients"); // Replace with the actual API endpoint
         const data = await response.json();
         setPatients(data.patients);
       } catch (error) {
-        console.error('Error fetching patients:', error);
+        console.error("Error fetching patients:", error);
       }
     };
 
@@ -109,7 +112,11 @@ export function DoctorDashboard() {
           params: { doctorId },
         });
 
-        setPrescriptions(response.data.filter((prescription:any) => prescription.confirmed === true));
+        setPrescriptions(
+          response.data.filter(
+            (prescription: any) => prescription.confirmed === true
+          )
+        );
       } catch (error) {
         console.error("Error fetching prescriptions:", error);
       }
@@ -120,7 +127,11 @@ export function DoctorDashboard() {
           params: { doctorId },
         });
 
-        setAppointments(response.data.filter((appointments:any) => appointments.confirmed === true));
+        setAppointments(
+          response.data.filter(
+            (appointments: any) => appointments.confirmed === true
+          )
+        );
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }
@@ -128,6 +139,28 @@ export function DoctorDashboard() {
     fetchAppointments();
     fetchPrescriptions();
   }, [doctorId]);
+  useEffect(() => {
+    const fetchAppointmentsDate = async () => {
+      if (doctorId && date) {
+        const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        console.log("formatted date is", formattedDate);
+        
+
+        // Make GET request to fetch appointments for the doctor on the selected date
+        fetch(
+          `/api/doctors/appointments?doctorId=${doctorId}&date=${formattedDate}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            setCurAppointments(data); // Set fetched appointments in state
+          })
+          .catch((error) => {
+            console.error("Error fetching appointments:", error);
+          });
+      }
+    };
+    fetchAppointmentsDate();
+  }, [date, doctorId]);
 
   const savePrescription = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,7 +257,10 @@ export function DoctorDashboard() {
                     <Calendar
                       mode="single"
                       selected={date}
-                      onSelect={setDate}
+                      onSelect={(newDate) => {
+                        console.log("Selected date:", newDate?.toDateString());
+                        setDate(newDate);
+                      }}
                       className="rounded-md border"
                     />
                   </div>
@@ -234,21 +270,18 @@ export function DoctorDashboard() {
                     </h3>
                     <ScrollArea className="h-[300px]">
                       <div className="space-y-4">
-                        <AppointmentCard
-                          time="09:00 AM"
-                          patientName="John Doe"
-                          reason="Annual Checkup"
-                        />
-                        <AppointmentCard
-                          time="10:30 AM"
-                          patientName="Jane Smith"
-                          reason="Follow-up"
-                        />
-                        <AppointmentCard
-                          time="02:00 PM"
-                          patientName="Bob Johnson"
-                          reason="New Patient Consultation"
-                        />
+                        {curAppointments.length > 0 ? (
+                          curAppointments.map((appointment) => (
+                            <AppointmentCard
+                              key={appointment.id}
+                              time={appointment.slot}
+                              patientName={appointment.patient.name}
+                              reason={appointment.reason || "Consultation"} // Assuming 'reason' field exists
+                            />
+                          ))
+                        ) : (
+                          <p>No appointments for this date.</p>
+                        )}
                       </div>
                     </ScrollArea>
                   </div>
@@ -391,8 +424,7 @@ export function DoctorDashboard() {
                           }
                           onValueChange={(value) => {
                             const selected = patients.find(
-                              (patient) =>
-                                patient.name === value
+                              (patient) => patient.name === value
                             );
                             setSelectedPatient(selected || null); // Set the selected patient object
                           }}
@@ -402,11 +434,7 @@ export function DoctorDashboard() {
                           </SelectTrigger>
                           <SelectContent>
                             {patients.map((patient) => (
-                              <SelectItem
-                                key={patient.id}
-                                value={patient.name
-                                  }
-                              >
+                              <SelectItem key={patient.id} value={patient.name}>
                                 {patient.name}
                               </SelectItem>
                             ))}
@@ -461,7 +489,9 @@ export function DoctorDashboard() {
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit" onClick={savePrescription}>Add Prescription</Button>
+                      <Button type="submit" onClick={savePrescription}>
+                        Add Prescription
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>

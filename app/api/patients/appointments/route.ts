@@ -1,31 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prismaClient } from '@/app/lib/db';
 
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const patientId = searchParams.get('patientId');
-  const date = searchParams.get('date');
 
   // Validate required query parameters
-  if (!patientId || !date) {
+  if (!patientId) {
     return NextResponse.json(
-      { message: 'Both patientId and date are required' },
+      { message: 'patientId is required' },
       { status: 400 }
     );
   }
 
   try {
-    const appointments = await prismaClient.appointment.findMany({
+    const currentDate = new Date(); // Get the current date and time
+
+    const upcomingAppointments = await prismaClient.appointment.findMany({
       where: {
         patientId: parseInt(patientId), // Ensure patientId is an integer
-        date: new Date(date),             // Convert date string to Date object
+        date: {
+          gte: currentDate, // Filter for appointments with date >= current date (upcoming)
+        },
+        confirmed:true
       },
       include: {
-        doctor: true, // Include doctor details if needed
+        doctor: true, // Include doctor details
+      },
+      orderBy: {
+        date: 'asc', // Optionally sort the appointments by date
       },
     });
 
-    return NextResponse.json(appointments, { status: 200 });
+    return NextResponse.json(upcomingAppointments, { status: 200 });
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return NextResponse.json(

@@ -64,27 +64,56 @@ type Doctor = {
   specialty: string;
 };
 
+interface Appointment {
+  id: number;
+  date: string;
+  timeSlot: string;
+  doctor: Doctor;
+  status: string;
+}
+
+import { format, parseISO } from "date-fns";
+
 export function PatientDashboard() {
   const { data: session } = useSession(); // Access session and loading status
 
-  const patientId=session?.user.id;
+  const patientId = session?.user.id;
   const [doctors, setDoctors] = useState<Doctor[]>([]);
 
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>();
   const [selectedDate, setSelectedDate] = useState("");
   const [reason, setReason] = useState("");
 
-  const [date, setDate] = useState<Date | undefined>(new Date());
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!patientId) return;
+
+      try {
+        const response = await axios.get(`/api/patients/appointments`, {
+          params: { patientId },
+        });
+
+        setAppointments(response.data);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      }
+    };
+
+    fetchAppointments();
     const fetchPrescriptions = async () => {
       console.log("patient id is ", patientId);
       try {
         const response = await axios.get(`/api/patients/prescriptions`, {
           params: { patientId },
         });
-        setPrescriptions(response.data.filter((prescription:any) => prescription.confirmed === true)); // Axios automatically parses JSON
+        setPrescriptions(
+          response.data.filter(
+            (prescription: any) => prescription.confirmed === true
+          )
+        ); // Axios automatically parses JSON
       } catch (error: any) {
         console.error("Error fetching prescriptions:", error);
       } finally {
@@ -105,7 +134,6 @@ export function PatientDashboard() {
 
     fetchPrescriptions();
   }, [patientId]);
-
 
   const timeSlots = [
     "9:00",
@@ -135,24 +163,24 @@ export function PatientDashboard() {
       timeSlot: selectedSlot,
       reason,
     };
-    console.log("appointment data is ",appointmentData)
+    console.log("appointment data is ", appointmentData);
 
     try {
-      const response = await fetch('/api/patients/appointments', {
-        method: 'POST',
+      const response = await fetch("/api/patients/appointments", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(appointmentData),
       });
 
       if (response.ok) {
-        console.log('Appointment successfully created');
+        console.log("Appointment successfully created");
       } else {
-        console.error('Error creating appointment');
+        console.error("Error creating appointment");
       }
     } catch (error) {
-      console.error('Error creating appointment:', error);
+      console.error("Error creating appointment:", error);
     }
   };
 
@@ -205,37 +233,25 @@ export function PatientDashboard() {
               <CardHeader>
                 <CardTitle>Appointments</CardTitle>
                 <CardDescription>
-                  View your upcoming and past appointments
+                  View your upcoming appointments
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex space-x-4">
                   <div className="w-1/2">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      className="rounded-md border"
-                    />
-                  </div>
-                  <div className="w-1/2">
-                    <h3 className="text-lg font-semibold mb-2">
-                      Appointments for {date?.toDateString()}
-                    </h3>
                     <ScrollArea className="h-[300px]">
                       <div className="space-y-4">
-                        <AppointmentCard
-                          time="09:00 AM"
-                          doctorName="Dr. Smith"
-                          specialty="General Practitioner"
-                          status="Upcoming"
-                        />
-                        <AppointmentCard
-                          time="02:30 PM"
-                          doctorName="Dr. Johnson"
-                          specialty="Cardiologist"
-                          status="Upcoming"
-                        />
+                        {appointments.map((appointment) => (
+                          <AppointmentCard
+                            key={appointment.id}
+                            time={`${format(
+                              parseISO(appointment.date),
+                              "MMM d, yyyy"
+                            )} ${appointment.timeSlot}`}
+                            doctorName={appointment.doctor.name}
+                            specialty={appointment.doctor.specialty}
+                          />
+                        ))}
                       </div>
                     </ScrollArea>
                   </div>
@@ -262,17 +278,22 @@ export function PatientDashboard() {
                           Doctor
                         </Label>
                         <Select
-                        value={
-                          selectedDoctor
-                            ? `dr-${selectedDoctor.name.toLowerCase().replace(/\s+/g, "-")}`
-                            : undefined
-                        }
-                        onValueChange={(value) => {
-                          const selected = doctors.find(
-                            (doctor) => `dr-${doctor.name.toLowerCase().replace(/\s+/g, '-')}` === value
-                          );
-                          setSelectedDoctor(selected); // Set the full doctor object
-                        }}
+                          value={
+                            selectedDoctor
+                              ? `dr-${selectedDoctor.name
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "-")}`
+                              : undefined
+                          }
+                          onValueChange={(value) => {
+                            const selected = doctors.find(
+                              (doctor) =>
+                                `dr-${doctor.name
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "-")}` === value
+                            );
+                            setSelectedDoctor(selected); // Set the full doctor object
+                          }}
                         >
                           <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select a doctor" />
@@ -339,7 +360,9 @@ export function PatientDashboard() {
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit" onClick={bookAppointment}>Book Appointment</Button>
+                      <Button type="submit" onClick={bookAppointment}>
+                        Book Appointment
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -460,12 +483,10 @@ function AppointmentCard({
   time,
   doctorName,
   specialty,
-  status,
 }: {
   time: string;
   doctorName: string;
   specialty: string;
-  status: "Upcoming" | "Past";
 }) {
   return (
     <Card>
@@ -486,13 +507,6 @@ function AppointmentCard({
           <p className="font-semibold">{time}</p>
           <p>{doctorName}</p>
           <p className="text-sm text-gray-500">{specialty}</p>
-          <p
-            className={`text-sm ${
-              status === "Upcoming" ? "text-green-500" : "text-gray-500"
-            }`}
-          >
-            {status}
-          </p>
         </div>
       </CardContent>
     </Card>

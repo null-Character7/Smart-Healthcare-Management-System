@@ -8,6 +8,8 @@ export async function GET(req: NextRequest) {
   const doctorId = searchParams.get('doctorId');
   const date = searchParams.get('date');
 
+  console.log("Date received in backend:", date);
+
   // Validate required query parameters
   if (!doctorId || !date) {
     return NextResponse.json(
@@ -21,15 +23,23 @@ export async function GET(req: NextRequest) {
     const appointmentDate = new Date(date);
     appointmentDate.setHours(0, 0, 0, 0); // Set time to start of the day
 
+    console.log("Appointment Date:", appointmentDate.toISOString());
+
+    // Fetch appointments for the doctor on the given day (ignoring time)
     const appointments = await prismaClient.appointment.findMany({
       where: {
-        doctorId: parseInt(doctorId), // Ensure doctorId is an integer
-        date: appointmentDate,
+        doctorId: parseInt(doctorId),
+        date: {
+          gte: appointmentDate,
+          lt: new Date(appointmentDate.getTime() + 24 * 60 * 60 * 1000), // Less than next day
+        },
       },
       include: {
         patient: true, // Include patient details if needed
       },
     });
+
+    console.log("Appointments found:", appointments.length);
 
     return NextResponse.json(appointments, { status: 200 });
   } catch (error) {
@@ -40,6 +50,7 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
 // GET /api/doctors/appointments?doctorId=1&date=2024-10-15
 
 export async function PUT(req: NextRequest) {
