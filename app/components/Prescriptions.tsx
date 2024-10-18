@@ -25,6 +25,7 @@ import { format, parseISO } from 'date-fns'
 import { AlertCircle } from 'lucide-react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
+import { useToast } from '@/hooks/use-toast'
 
 interface Prescription {
   id: string
@@ -40,7 +41,7 @@ export function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
   const [loading, setLoading] = useState(true)
   const { data: session } = useSession()
-
+  const {toast} = useToast();
   const patientId = session?.user.id
 
   useEffect(() => {
@@ -79,6 +80,9 @@ export function Prescriptions() {
           prescription.id === id ? { ...prescription, confirmed: true } : prescription
         )
       )
+      toast({
+        title: "Prescription added",
+      });
     } catch (error) {
       console.error('Error confirming prescription:', error)
     }

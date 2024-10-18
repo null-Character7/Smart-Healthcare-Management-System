@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Appointment {
   id: string;
@@ -44,6 +45,7 @@ export function Appointments() {
   const { data: session } = useSession();
 
   const doctorId = session?.user.id;
+  const {toast}=useToast();
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -73,6 +75,9 @@ export function Appointments() {
           appointment.id === id ? { ...appointment, confirmed: true } : appointment
         )
       );
+      toast({
+        title: "Appointment Confirmed",
+      });
     } catch (error) {
       console.error('Error confirming appointment:', error);
     }

@@ -54,6 +54,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { format, parseISO } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 interface Prescription {
   patient: {
@@ -94,6 +95,9 @@ export function DoctorDashboard() {
   const [endDate, setEndDate] = useState("");
   const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+
 
   const doctorId = session?.user.id;
 
@@ -103,16 +107,27 @@ export function DoctorDashboard() {
 
       setLoading(true);
       try {
-        const [patientsRes, prescriptionsRes, appointmentsRes] = await Promise.all([
-          fetch("/api/patients"),
-          axios.get(`/api/doctors/prescriptions`, { params: { doctorId } }),
-          axios.get(`/api/doctors/appointments/all`, { params: { doctorId } })
-        ]);
+        const [patientsRes, prescriptionsRes, appointmentsRes] =
+          await Promise.all([
+            fetch("/api/patients"),
+            axios.get(`/api/doctors/prescriptions`, { params: { doctorId } }),
+            axios.get(`/api/doctors/appointments/all`, {
+              params: { doctorId },
+            }),
+          ]);
 
         const patientsData = await patientsRes.json();
         setPatients(patientsData.patients);
-        setPrescriptions(prescriptionsRes.data.filter((prescription: any) => prescription.confirmed === true));
-        setAppointments(appointmentsRes.data.filter((appointment: any) => appointment.confirmed === true));
+        setPrescriptions(
+          prescriptionsRes.data.filter(
+            (prescription: any) => prescription.confirmed === true
+          )
+        );
+        setAppointments(
+          appointmentsRes.data.filter(
+            (appointment: any) => appointment.confirmed === true
+          )
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -123,12 +138,15 @@ export function DoctorDashboard() {
     fetchData();
   }, [doctorId]);
 
+
   useEffect(() => {
     const fetchAppointmentsDate = async () => {
       if (doctorId && date) {
-        const formattedDate = format(date, 'yyyy-MM-dd');
+        const formattedDate = format(date, "yyyy-MM-dd");
         try {
-          const response = await fetch(`/api/doctors/appointments?doctorId=${doctorId}&date=${formattedDate}`);
+          const response = await fetch(
+            `/api/doctors/appointments?doctorId=${doctorId}&date=${formattedDate}`
+          );
           const data = await response.json();
           setCurAppointments(data);
         } catch (error) {
@@ -157,9 +175,23 @@ export function DoctorDashboard() {
       });
       if (response.ok) {
         console.log("Prescription successfully added");
+        setIsDialogOpen(false);
+
+        // Show toast with details of the added prescription
+        toast({
+          title: "Prescription added",
+          description: `Medication: ${medication}, Dosage: ${dosage}, Start Date: ${startDate}, End Date: ${endDate}`,
+        });
         // Refresh prescriptions
-        const updatedPrescriptions = await axios.get(`/api/doctors/prescriptions`, { params: { doctorId } });
-        setPrescriptions(updatedPrescriptions.data.filter((prescription: any) => prescription.confirmed === true));
+        const updatedPrescriptions = await axios.get(
+          `/api/doctors/prescriptions`,
+          { params: { doctorId } }
+        );
+        setPrescriptions(
+          updatedPrescriptions.data.filter(
+            (prescription: any) => prescription.confirmed === true
+          )
+        );
       } else {
         console.error("Error adding prescription");
       }
@@ -183,7 +215,9 @@ export function DoctorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Appointments</CardTitle>
-                <CardDescription>View and manage your appointments</CardDescription>
+                <CardDescription>
+                  View and manage your appointments
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex space-x-4">
@@ -202,9 +236,11 @@ export function DoctorDashboard() {
                     <ScrollArea className="h-[300px]">
                       <div className="space-y-4">
                         {loading ? (
-                          Array(3).fill(0).map((_, index) => (
-                            <AppointmentCardSkeleton key={index} />
-                          ))
+                          Array(3)
+                            .fill(0)
+                            .map((_, index) => (
+                              <AppointmentCardSkeleton key={index} />
+                            ))
                         ) : curAppointments.length > 0 ? (
                           curAppointments.map((appointment) => (
                             <AppointmentCard
@@ -229,13 +265,19 @@ export function DoctorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Patient Records</CardTitle>
-                <CardDescription>View and manage patient medical records</CardDescription>
+                <CardDescription>
+                  View and manage patient medical records
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="mb-4">
                   <Label htmlFor="search-patients">Search Patients</Label>
                   <div className="flex w-full max-w-sm items-center space-x-2">
-                    <Input type="text" id="search-patients" placeholder="Enter patient name" />
+                    <Input
+                      type="text"
+                      id="search-patients"
+                      placeholder="Enter patient name"
+                    />
                     <Button type="submit">
                       <Search className="w-4 h-4 mr-2" />
                       Search
@@ -252,25 +294,38 @@ export function DoctorDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {loading ? (
-                      Array(5).fill(0).map((_, index) => (
-                        <TableRow key={index}>
-                          <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      appointments.map((appointment, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{appointment.patient.name}</TableCell>
-                          <TableCell>{appointment.patient.age}</TableCell>
-                          <TableCell>{format(parseISO(appointment.date), 'MMM d, yyyy')}</TableCell>
-                          <TableCell>{appointment.reason}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
+                    {loading
+                      ? Array(5)
+                          .fill(0)
+                          .map((_, index) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[150px]" />
+                              </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[50px]" />
+                              </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[100px]" />
+                              </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[200px]" />
+                              </TableCell>
+                            </TableRow>
+                          ))
+                      : appointments.map((appointment, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{appointment.patient.name}</TableCell>
+                            <TableCell>{appointment.patient.age}</TableCell>
+                            <TableCell>
+                              {format(
+                                parseISO(appointment.date),
+                                "MMM d, yyyy"
+                              )}
+                            </TableCell>
+                            <TableCell>{appointment.reason}</TableCell>
+                          </TableRow>
+                        ))}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -281,13 +336,21 @@ export function DoctorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Prescriptions</CardTitle>
-                <CardDescription>Write and manage prescriptions</CardDescription>
+                <CardDescription>
+                  Write and manage prescriptions
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="mb-4">
-                  <Label htmlFor="search-prescriptions">Search Prescriptions</Label>
+                  <Label htmlFor="search-prescriptions">
+                    Search Prescriptions
+                  </Label>
                   <div className="flex w-full max-w-sm items-center space-x-2">
-                    <Input type="text" id="search-prescriptions" placeholder="Enter patient name or medication" />
+                    <Input
+                      type="text"
+                      id="search-prescriptions"
+                      placeholder="Enter patient name or medication"
+                    />
                     <Button type="submit">
                       <Search className="w-4 h-4 mr-2" />
                       Search
@@ -305,32 +368,52 @@ export function DoctorDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {loading ? (
-                      Array(5).fill(0).map((_, index) => (
-                        <TableRow key={index}>
-                          <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      prescriptions.map((prescription, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{prescription.patient.name}</TableCell>
-                          <TableCell>{prescription.medication}</TableCell>
-                          <TableCell>{prescription.dosage}</TableCell>
-                          <TableCell>{format(parseISO(prescription.startDate), 'MMM d, yyyy')}</TableCell>
-                          <TableCell>{format(parseISO(prescription.nextVisit), 'MMM d, yyyy')}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
+                    {loading
+                      ? Array(5)
+                          .fill(0)
+                          .map((_, index) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[150px]" />
+                              </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[100px]" />
+                              </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[80px]" />
+                              </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[100px]" />
+                              </TableCell>
+                              <TableCell>
+                                <Skeleton className="h-4 w-[100px]" />
+                              </TableCell>
+                            </TableRow>
+                          ))
+                      : prescriptions.map((prescription, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{prescription.patient.name}</TableCell>
+                            <TableCell>{prescription.medication}</TableCell>
+                            <TableCell>{prescription.dosage}</TableCell>
+                            <TableCell>
+                              {format(
+                                parseISO(prescription.startDate),
+                                "MMM d, yyyy"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {format(
+                                parseISO(prescription.nextVisit),
+                                "MMM d, yyyy"
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
                   </TableBody>
                 </Table>
               </CardContent>
               <CardFooter>
-                <Dialog>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
                     <Button>
                       <Plus className="w-4 h-4 mr-2" />
@@ -340,15 +423,24 @@ export function DoctorDashboard() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Add New Prescription</DialogTitle>
-                      <DialogDescription>Add prescription details</DialogDescription>
+                      <DialogDescription>
+                        Add prescription details
+                      </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                      {/* Form Fields */}
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="patient" className="text-right">Prescribed to</Label>
+                        <Label htmlFor="patient" className="text-right">
+                          Prescribed to
+                        </Label>
                         <Select
-                          value={selectedPatient ? selectedPatient.name : undefined}
+                          value={
+                            selectedPatient ? selectedPatient.name : undefined
+                          }
                           onValueChange={(value) => {
-                            const selected = patients.find((patient) => patient.name === value);
+                            const selected = patients.find(
+                              (patient) => patient.name === value
+                            );
                             setSelectedPatient(selected || null);
                           }}
                         >
@@ -363,14 +455,24 @@ export function DoctorDashboard() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <Label htmlFor="medication" className="text-right">Medication</Label>
+                      </div>
+
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="medication" className="text-right">
+                          Medication
+                        </Label>
                         <Input
                           id="medication"
                           className="col-span-3"
                           value={medication}
                           onChange={(e) => setMedication(e.target.value)}
                         />
-                        <Label htmlFor="dosage" className="text-right">Dosage</Label>
+                      </div>
+
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="dosage" className="text-right">
+                          Dosage
+                        </Label>
                         <Input
                           id="dosage"
                           className="col-span-3"
@@ -378,10 +480,12 @@ export function DoctorDashboard() {
                           onChange={(e) => setDosage(e.target.value)}
                         />
                       </div>
+
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="startDate" className="text-right">Start Date</Label>
+                        <Label htmlFor="startDate" className="text-right">
+                          Start Date
+                        </Label>
                         <Input
-                
                           id="startDate"
                           type="date"
                           className="col-span-3"
@@ -389,8 +493,11 @@ export function DoctorDashboard() {
                           onChange={(e) => setStartDate(e.target.value)}
                         />
                       </div>
+
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="endDate" className="text-right">End Date</Label>
+                        <Label htmlFor="endDate" className="text-right">
+                          End Date
+                        </Label>
                         <Input
                           id="endDate"
                           type="date"
@@ -401,7 +508,9 @@ export function DoctorDashboard() {
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit" onClick={savePrescription}>Add Prescription</Button>
+                      <Button type="submit" onClick={savePrescription}>
+                        Add Prescription
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -413,7 +522,9 @@ export function DoctorDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>AI-Powered Disease Prediction Tool</CardTitle>
-                <CardDescription>Use AI to predict potential diseases based on symptoms</CardDescription>
+                <CardDescription>
+                  Use AI to predict potential diseases based on symptoms
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -423,18 +534,28 @@ export function DoctorDashboard() {
                   </div>
                   <div>
                     <Label htmlFor="symptoms">Symptoms</Label>
-                    <Textarea id="symptoms" placeholder="Enter patient symptoms (comma-separated)" />
+                    <Textarea
+                      id="symptoms"
+                      placeholder="Enter patient symptoms (comma-separated)"
+                    />
                   </div>
                   <div>
                     <Label>Additional Factors</Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="age">Age</Label>
-                        <Input id="age" type="number" placeholder="Enter patient age" />
+                        <Input
+                          id="age"
+                          type="number"
+                          placeholder="Enter patient age"
+                        />
                       </div>
                       <div>
                         <Label htmlFor="gender">Gender</Label>
-                        <select id="gender" className="w-full p-2 border rounded">
+                        <select
+                          id="gender"
+                          className="w-full p-2 border rounded"
+                        >
                           <option value="">Select gender</option>
                           <option value="male">Male</option>
                           <option value="female">Female</option>
