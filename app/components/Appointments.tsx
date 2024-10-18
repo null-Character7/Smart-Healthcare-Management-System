@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO } from "date-fns";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { Header } from "./Header";
 
 interface Appointment {
   id: string;

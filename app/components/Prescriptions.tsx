@@ -23,6 +23,7 @@ import { format, parseISO } from 'date-fns'
 import { AlertCircle } from 'lucide-react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
+import { Header } from './Header'
 
 interface Prescription {
   id: string

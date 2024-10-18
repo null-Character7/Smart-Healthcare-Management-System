@@ -54,6 +54,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSession } from "next-auth/react";
+import { Header } from "./Header";
 interface Prescription {
   patient: {
     name: string;
@@ -194,44 +195,7 @@ export function DoctorDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md">
-        <div className="p-4">
-          <h2 className="text-2xl font-semibold text-gray-800">Dashboard</h2>
-        </div>
-        <nav className="mt-6">
-          <a
-            href="#appointments"
-            className="flex items-center px-4 py-2 text-gray-700 bg-gray-100"
-          >
-            <CalendarDays className="w-5 h-5 mr-2" />
-            Appointments
-          </a>
-          <a
-            href="#patients"
-            className="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-100"
-          >
-            <ClipboardList className="w-5 h-5 mr-2" />
-            Patient Records
-          </a>
-          <a
-            href="#prescriptions"
-            className="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-100"
-          >
-            <FileText className="w-5 h-5 mr-2" />
-            Prescriptions
-          </a>
-          <a
-            href="#ai-tool"
-            className="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-100"
-          >
-            <Activity className="w-5 h-5 mr-2" />
-            AI Prediction Tool
-          </a>
-        </nav>
-      </aside>
-
+    <div className="flex flex-col h-screen bg-gray-100">
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
         <Tabs defaultValue="appointments">

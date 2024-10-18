@@ -73,6 +73,7 @@ interface Appointment {
 }
 
 import { format, parseISO } from "date-fns";
+import { Header } from "./Header";
 
 export function PatientDashboard() {
   const { data: session } = useSession(); // Access session and loading status
@@ -185,37 +186,7 @@ export function PatientDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md">
-        <div className="p-4">
-          <h2 className="text-2xl font-semibold text-gray-800">Dashboard</h2>
-        </div>
-        <nav className="mt-6">
-          <a
-            href="#appointments"
-            className="flex items-center px-4 py-2 text-gray-700 bg-gray-100"
-          >
-            <CalendarDays className="w-5 h-5 mr-2" />
-            Appointments
-          </a>
-          <a
-            href="#prescriptions"
-            className="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-100"
-          >
-            <FileText className="w-5 h-5 mr-2" />
-            Prescriptions
-          </a>
-          <a
-            href="#ai-recommendations"
-            className="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-100"
-          >
-            <Activity className="w-5 h-5 mr-2" />
-            Health Insights
-          </a>
-        </nav>
-      </aside>
-
+    <div className="flex flex-col h-screen bg-gray-100">
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
         <Tabs defaultValue="appointments">
