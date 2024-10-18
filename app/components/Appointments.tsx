@@ -19,10 +19,10 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { Header } from "./Header";
 
 interface Appointment {
   id: string;
@@ -40,49 +40,44 @@ interface Appointment {
 
 export function Appointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const { data: session } = useSession(); // Access session and loading status
+  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
 
   const doctorId = session?.user.id;
 
   useEffect(() => {
     const fetchAppointments = async () => {
-      if (!doctorId) return; // Prevent fetching if doctorId is undefined
+      if (!doctorId) return;
 
-      console.log("Doctor ID is ", doctorId);
-
+      setLoading(true);
       try {
         const response = await axios.get(`/api/doctors/appointments/all`, {
           params: { doctorId },
         });
-        console.log(response.data);
         setAppointments(response.data);
-
       } catch (error) {
         console.error("Error fetching appointments:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchAppointments();
   }, [doctorId]);
 
-  const handleConfirmAppointment = async(id: string) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.map((appointment) =>
-        appointment.id === id ? { ...appointment, confirmed: true } : appointment
-      )
-    );
+  const handleConfirmAppointment = async (id: string) => {
     try {
-      const response = await axios.put('/api/doctors/appointments', {
-        id: id,
-      });
-  
-      console.log('Appointment confirmed:', response.data);
+      await axios.put('/api/doctors/appointments', { id });
+      setAppointments((prevAppointments) =>
+        prevAppointments.map((appointment) =>
+          appointment.id === id ? { ...appointment, confirmed: true } : appointment
+        )
+      );
     } catch (error) {
       console.error('Error confirming appointment:', error);
     }
   };
 
-  // Filter for pending and confirmed appointments
   const pendingAppointments = appointments.filter(
     (appointment) => appointment.confirmed === false
   );
@@ -101,10 +96,10 @@ export function Appointments() {
           <Tabs defaultValue="pending">
             <TabsList>
               <TabsTrigger value="pending">
-                Pending ({pendingAppointments.length})
+                Pending ({loading ? '...' : pendingAppointments.length})
               </TabsTrigger>
               <TabsTrigger value="upcoming">
-                Confirmed ({confirmedAppointments.length})
+                Confirmed ({loading ? '...' : confirmedAppointments.length})
               </TabsTrigger>
             </TabsList>
             <TabsContent value="pending">
@@ -112,6 +107,7 @@ export function Appointments() {
                 appointments={pendingAppointments}
                 onConfirm={handleConfirmAppointment}
                 showActions={true}
+                loading={loading}
               />
             </TabsContent>
             <TabsContent value="upcoming">
@@ -119,6 +115,7 @@ export function Appointments() {
                 appointments={confirmedAppointments}
                 onConfirm={handleConfirmAppointment}
                 showActions={false}
+                loading={loading}
               />
             </TabsContent>
           </Tabs>
@@ -132,12 +129,14 @@ interface AppointmentTableProps {
   appointments: Appointment[];
   onConfirm: (id: string) => void;
   showActions: boolean;
+  loading: boolean;
 }
 
 function AppointmentTable({
   appointments,
   onConfirm,
   showActions,
+  loading,
 }: AppointmentTableProps) {
   return (
     <Table>
@@ -153,35 +152,51 @@ function AppointmentTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {appointments.map((appointment) => (
-          <TableRow key={appointment.id}>
-            <TableCell>
-              {format(parseISO(appointment.date), "MMM d, yyyy")}
-            </TableCell>
-            <TableCell>{appointment.timeSlot}</TableCell>
-            <TableCell>{appointment.patient.name}</TableCell>
-            <TableCell>{appointment.patient.age}</TableCell>
-            <TableCell>{appointment.reason}</TableCell>
-            <TableCell>
-              <Badge variant={appointment.confirmed ? "default" : "outline"}>
-                {appointment.confirmed ? "Confirmed" : "Pending"}
-              </Badge>
-            </TableCell>
-            {showActions && (
+        {loading ? (
+          Array(5).fill(0).map((_, index) => (
+            <TableRow key={index}>
+              <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[40px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+              {showActions && (
+                <TableCell><Skeleton className="h-8 w-[80px]" /></TableCell>
+              )}
+            </TableRow>
+          ))
+        ) : (
+          appointments.map((appointment) => (
+            <TableRow key={appointment.id}>
               <TableCell>
-                {!appointment.confirmed && (
-                  <Button
-                    onClick={() => onConfirm(appointment.id)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Confirm
-                  </Button>
-                )}
+                {format(parseISO(appointment.date), "MMM d, yyyy")}
               </TableCell>
-            )}
-          </TableRow>
-        ))}
+              <TableCell>{appointment.timeSlot}</TableCell>
+              <TableCell>{appointment.patient.name}</TableCell>
+              <TableCell>{appointment.patient.age}</TableCell>
+              <TableCell>{appointment.reason}</TableCell>
+              <TableCell>
+                <Badge variant={appointment.confirmed ? "default" : "outline"}>
+                  {appointment.confirmed ? "Confirmed" : "Pending"}
+                </Badge>
+              </TableCell>
+              {showActions && (
+                <TableCell>
+                  {!appointment.confirmed && (
+                    <Button
+                      onClick={() => onConfirm(appointment.id)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Confirm
+                    </Button>
+                  )}
+                </TableCell>
+              )}
+            </TableRow>
+          ))
+        )}
       </TableBody>
     </Table>
   );

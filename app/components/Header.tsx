@@ -54,7 +54,7 @@ export function Header() {
               <LayoutDashboard className="h-4 w-4 mr-2 inline-block" />
               Dashboard
             </Link>
-            {!isDoctor && (
+            {isDoctor && (
               <Link
                 className="transition-colors hover:text-foreground/80 text-foreground/60"
                 href="/appointments"
@@ -63,7 +63,7 @@ export function Header() {
                 My Appointments
               </Link>
             )}
-            {isDoctor && (
+            {!isDoctor && (
               <Link
                 className="transition-colors hover:text-foreground/80 text-foreground/60"
                 href="/prescriptions"
