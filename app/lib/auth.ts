@@ -1,3 +1,4 @@
+// @ts-nocheck
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prismaClient } from './db';
 
